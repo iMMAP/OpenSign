@@ -80,7 +80,13 @@ if (smtpenable) {
       };
     }
     transporterMail = createTransport(transporterConfig);
-    await transporterMail.verify();
+    // Don't let SMTP DNS/network delays block server startup.
+    await Promise.race([
+      transporterMail.verify(),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('SMTP verify timeout')), 2000)
+      ),
+    ]);
     isMailAdapter = true;
   } catch (err) {
     isMailAdapter = false;
@@ -170,6 +176,11 @@ export const app = express();
 app.use(cors());
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
+
+// Lightweight health endpoint for debugging/probing.
+app.get('/healthz', function (req, res) {
+  res.status(200).json({ ok: true });
+});
 app.use(function (req, res, next) {
   req.headers['x-real-ip'] = getUserIP(req);
   const publicUrl = 'https://' + req?.get('host');
@@ -216,6 +227,9 @@ app.use('/public', express.static(path.join(__dirname, '/public')));
 // Serve the Parse API on the /parse URL prefix
 if (!process.env.TESTING) {
   const mountPath = process.env.PARSE_MOUNT || '/app';
+  // Some deployments only route the Parse mount path. Mount custom routes there FIRST
+  // so they don't get shadowed by Parse Server.
+  app.use(mountPath, customRoute);
   try {
     const server = new ParseServer(config);
     await server.start();

@@ -1,7 +1,6 @@
 import axios from 'axios';
 import multer from 'multer';
 import libre from 'libreoffice-convert';
-import { exec } from 'child_process';
 import { promisify } from 'util';
 import { cloudServerUrl, getSecureUrl, serverAppId } from '../../Utils.js';
 
@@ -124,6 +123,8 @@ export default async function docxtopdf(req, res) {
   }
 
   try {
+    const uploadedSizeBytes = req.file.size ?? req.file.buffer.length ?? 0;
+
     // ---- Auth: current user ----
     const userRes = await axios.get(`${serverUrl}/users/me`, { headers: sessionHeader });
 
@@ -171,6 +172,16 @@ export default async function docxtopdf(req, res) {
         console.error(`[DOCX2PDF] Failed after ${Date.now() - startTime}ms:`, error.message);
         // Clean up on error
         await killStuckProcesses();
+        // Common failure when LibreOffice isn't installed/available.
+        if (
+          String(error?.message || '').toLowerCase().includes('soffice') ||
+          String(error?.message || '').toLowerCase().includes('spawn') ||
+          String(error?.message || '').toLowerCase().includes('enoent')
+        ) {
+          throw new Error(
+            'DOCX conversion failed because LibreOffice is not available on the server.'
+          );
+        }
         throw error;
       }
     });
@@ -204,7 +215,9 @@ export default async function docxtopdf(req, res) {
       err?.response?.data?.error || err?.response?.data || err?.message || 'Something went wrong.';
     // Friendly message to the client
     const message =
-      'We are currently experiencing some issues with processing DOCX files. Please upload the PDF version or contact us on support@opensignlabs.com';
+      msg && String(msg).includes('LibreOffice')
+        ? 'DOCX conversion is not available on the server. Please install LibreOffice (soffice) or upload a PDF.'
+        : 'We are currently experiencing some issues with processing DOCX files. Please upload the PDF version or contact us on support@opensignlabs.com';
 
     if (msg.includes('timed out')) {
       msg =

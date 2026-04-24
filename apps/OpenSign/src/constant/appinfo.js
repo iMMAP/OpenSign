@@ -1,4 +1,4 @@
-import logo from "../assets/images/logo.png";
+import logo from "../assets/images/immap-logo-white.png";
 import { getEnv } from "./Utils";
 
 export function serverUrl_fn() {

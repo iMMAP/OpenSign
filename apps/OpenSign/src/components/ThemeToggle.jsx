@@ -9,7 +9,7 @@ const ThemeToggle = () => {
       setIsDark(true);
       document.documentElement.setAttribute("data-theme", "opensigndark");
     } else {
-      document.documentElement.setAttribute("data-theme", "opensigncss");
+      document.documentElement.setAttribute("data-theme", "immapLight");
     }
   }, []);
 
@@ -20,7 +20,7 @@ const ThemeToggle = () => {
       document.documentElement.setAttribute("data-theme", "opensigndark");
       localStorage.setItem("theme", "dark");
     } else {
-      document.documentElement.setAttribute("data-theme", "opensigncss");
+      document.documentElement.setAttribute("data-theme", "immapLight");
       localStorage.setItem("theme", "light");
     }
   };

@@ -3,8 +3,6 @@ import Parse from "parse";
 import { useDispatch } from "react-redux";
 import axios from "axios";
 import { NavLink, useNavigate, useLocation } from "react-router";
-import login_img from "../assets/images/login_img.svg";
-import { useWindowSize } from "../hook/useWindowSize";
 import ModalUi from "../primitives/ModalUi";
 import {
   emailRegex,
@@ -21,6 +19,7 @@ import {
 import Loader from "../primitives/Loader";
 import { useTranslation } from "react-i18next";
 import SelectLanguage from "../components/pdf/SelectLanguage";
+import immapLogo from "../assets/images/logo-white.png";
 
 function Login() {
   const appName =
@@ -29,7 +28,6 @@ function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const { width } = useWindowSize();
   const [state, setState] = useState({
     email: "",
     password: "",
@@ -422,28 +420,26 @@ function Login() {
         </div>
       )}
       {appInfo && appInfo.appId ? (
-        <>
-          <div
-            aria-labelledby="loginHeading"
-            role="region"
-            className="pb-1 md:pb-4 pt-10 md:px-10 lg:px-16 h-full"
-          >
-            <div className="md:p-4 lg:p-10 p-4 bg-base-100 text-base-content op-card">
-              <div className="w-[250px] h-[66px] inline-block overflow-hidden">
-                {image && (
-                  <img
-                    src={image}
-                    className="object-contain h-full"
-                    alt="applogo"
-                  />
-                )}
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-2">
-                <div>
-                  <form onSubmit={handleLoginBtn} aria-label="Login Form">
-                    <h1 className="text-[30px] mt-6">{t("welcome")}</h1>
+        <div
+          aria-labelledby="loginHeading"
+          role="region"
+          className="min-h-screen flex items-center justify-center pb-6 pt-10 px-4 md:px-10 lg:px-16"
+        >
+          <div className="w-full max-w-[520px] md:p-6 lg:p-10 p-4 bg-base-100 text-base-content op-card shadow-md">
+            <div className="flex flex-col items-center gap-3">
+              <img
+                src={immapLogo}
+                className="h-[80px] w-auto object-contain"
+                alt="iMMAP"
+              />
+            </div>
+            <div className="mt-4">
+                <form onSubmit={handleLoginBtn} aria-label="Login Form">
+                    <h1 className="text-[30px] mt-6 text-center">
+                      {t("welcome")}
+                    </h1>
                     <fieldset>
-                      <legend className="text-[12px] text-[#878787]">
+                      <legend className="text-[12px] text-[#878787] text-center">
                         {t("Login-to-your-account")}
                       </legend>
                       <div className="w-full px-6 py-3 my-1 op-card bg-base-100 shadow-md outline outline-1 outline-slate-300/50">
@@ -508,35 +504,25 @@ function Login() {
                           </div>
                       </div>
                     </fieldset>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-center text-xs font-bold mt-2">
+                    <div className="mt-2">
                       <button
                         type="submit"
-                        className="op-btn op-btn-primary"
+                        className="op-btn op-btn-primary w-full"
                         disabled={state.loading}
                       >
                         {state.loading ? t("loading") : t("login")}
                       </button>
                     </div>
-                  </form>
-                </div>
-                {width >= 768 && (
-                  <div className="place-self-center">
-                    <div className="mx-auto md:w-[300px] lg:w-[400px] xl:w-[500px]">
-                      <img
-                        src={login_img}
-                        alt="The image illustrates a person from behind, seated at a desk with a four-monitor computer setup, in an environment with a light blue and white color scheme, featuring a potted plant to the right."
-                        width="100%"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
+              </form>
             </div>
-            <SelectLanguage />
-            {state.alertMsg && (
-              <Alert type={state.alertType}>{state.alertMsg}</Alert>
-            )}
           </div>
+
+          {/* Hide language selector for now */}
+          {false && <SelectLanguage />}
+          {state.alertMsg && (
+            <Alert type={state.alertType}>{state.alertMsg}</Alert>
+          )}
+
           <ModalUi
             isOpen={isModal}
             title={t("additional-info")}
@@ -615,7 +601,7 @@ function Login() {
               </div>
             </form>
           </ModalUi>
-        </>
+        </div>
       ) : (
         <div
           aria-live="assertive"

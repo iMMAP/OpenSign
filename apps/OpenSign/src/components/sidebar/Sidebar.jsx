@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import Menu from "./Menu";
 import Submenu from "./SubMenu";
 import SocialMedia from "../SocialMedia";
-import dp from "../../assets/images/dp.png";
 import sidebarList, { subSetting } from "../../json/menuJson";
 import { useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
@@ -20,10 +19,17 @@ const Sidebar = () => {
   const [menuList, setmenuList] = useState([]);
   const [submenuOpen, setSubmenuOpen] = useState(false);
   const username = localStorage.getItem("username");
-  const image = localStorage.getItem("profileImg") || dp;
   const tenantname = localStorage.getItem("Extand_Class")
     ? JSON.parse(localStorage.getItem("Extand_Class"))?.[0]?.Company
     : "";
+
+  const userInitials = (username || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase())
+    .join("");
 
   useEffect(() => {
     if (localStorage.getItem("accesstoken")) {
@@ -83,13 +89,11 @@ const Sidebar = () => {
       <div className="flex px-2 py-3 gap-2 items-center shadow-md">
         <div
           onClick={() => handleProfile()}
-          className="w-[75px] h-[75px] rounded-full ring-[2px] ring-offset-2 ring-gray-400 overflow-hidden cursor-pointer"
+          className="w-[75px] h-[75px] rounded-full ring-[2px] ring-offset-2 ring-primary ring-offset-base-100 overflow-hidden cursor-pointer"
         >
-          <img
-            className="w-full h-full object-contain"
-            src={image}
-            alt="Profile"
-          />
+          <div className="w-full h-full flex items-center justify-center bg-base-content text-white text-xl font-bold">
+            {userInitials || "U"}
+          </div>
         </div>
         <div>
           <p

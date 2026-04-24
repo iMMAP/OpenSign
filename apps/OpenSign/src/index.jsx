@@ -1,6 +1,7 @@
 import ReactDOM from "react-dom/client";
 import "./index.css";
 import "./styles/dark-theme-improvements.css";
+import "./styles/immap-theme-overrides.css";
 import App from "./App";
 import { showUpgradeProgress, hideUpgradeProgress } from "./utils";
 import { Provider } from "react-redux";
@@ -23,6 +24,9 @@ if (localStorage.getItem("showUpgradeProgress")) {
 const savedTheme = localStorage.getItem("theme");
 if (savedTheme === "dark") {
   document.documentElement.setAttribute("data-theme", "opensigndark");
+} else {
+  // Default the iMMAP fork to the iMMAP light theme.
+  document.documentElement.setAttribute("data-theme", "immapLight");
 }
 
 

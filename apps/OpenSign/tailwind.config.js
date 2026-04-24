@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+const { immapLight } = require("./immapTheme.cjs");
+
 module.exports = {
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
@@ -78,6 +80,7 @@ module.exports = {
   daisyui: {
     // themes: true,
     themes: [
+      immapLight,
       {
         opensigndark: {
           primary: "#007ACC", // VS Code blue - CTA & highlight color

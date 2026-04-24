@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import dp from "../assets/images/dp.png";
+import immapLogoWhite from "../assets/images/immap-logo-white.png";
 import FullScreenButton from "./FullScreenButton";
 import ThemeToggle from "./ThemeToggle";
 import { useNavigate } from "react-router";
@@ -22,10 +22,16 @@ const Header = ({ isConsole, setIsLoggingOut }) => {
   const { width } = useWindowSize();
   const dispatch = useDispatch();
   const username = localStorage.getItem("username") || "";
-  const image = localStorage.getItem("profileImg") || dp;
   const [isOpen, setIsOpen] = useState(false);
-  const [applogo, setAppLogo] = useState("");
   const [isDarkTheme, setIsDarkTheme] = useState();
+
+  const userInitials = (username || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase())
+    .join("");
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
@@ -52,13 +58,8 @@ const Header = ({ isConsole, setIsLoggingOut }) => {
 
 
   async function initializeHead() {
-      const applogo = await getAppLogo();
-      if (applogo?.logo) {
-        setAppLogo(applogo?.logo);
-      } else {
-        const logo = localStorage.getItem("appLogo") || appInfo.applogo;
-        setAppLogo(logo);
-      }
+      // Preserve upstream behavior that fetches app config, but we render iMMAP branding.
+      await getAppLogo();
   }
   const handleLogout = async () => {
     setIsOpen(false);
@@ -144,17 +145,11 @@ const Header = ({ isConsole, setIsLoggingOut }) => {
             onClick={() => navigate("/dashboard/35KBoSgoAK")}
             className="h-[25px] md:h-[40px] w-auto overflow-hidden cursor-pointer"
           >
-            {applogo && (
-              <img
-                className="object-contain h-full w-auto"
-                src={
-                      isDarkTheme
-                      ? "/static/js/assets/images/logo-dark.png"
-                      : applogo
-                }
-                alt="logo"
-              />
-            )}
+            <img
+              className="object-contain h-full w-auto"
+              src={immapLogoWhite}
+              alt="iMMAP"
+            />
           </div>
         </div>
         <div id="profile-menu" className="flex-none gap-2">
@@ -164,13 +159,11 @@ const Header = ({ isConsole, setIsLoggingOut }) => {
           {width >= 768 && (
             <div
               onClick={toggleDropdown}
-              className="cursor-pointer w-[35px] h-[35px] rounded-full ring-[1px] ring-offset-2 ring-gray-400 overflow-hidden"
+              className="cursor-pointer w-[35px] h-[35px] rounded-full ring-[1px] ring-offset-2 ring-primary ring-offset-base-100 overflow-hidden"
             >
-              <img
-                className="w-[35px] h-[35px] object-contain"
-                src={image}
-                alt="img"
-              />
+              <div className="w-[35px] h-[35px] flex items-center justify-center bg-base-content text-white text-xs font-bold">
+                {userInitials || "U"}
+              </div>
             </div>
           )}
           {width >= 768 && (

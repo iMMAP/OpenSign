@@ -65,7 +65,7 @@ function getPublicOrigin() {
   return '';
 }
 
-function createProxyUrl(remoteUrl, expirationTimeInSeconds) {
+export function createProxyUrl(remoteUrl, expirationTimeInSeconds) {
   const secretKey = process.env.MASTER_KEY;
   const exp = expirationTimeInSeconds || 200;
   const payload = {

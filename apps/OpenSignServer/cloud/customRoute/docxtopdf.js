@@ -4,6 +4,7 @@ import libre from 'libreoffice-convert';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { cloudServerUrl, getSecureUrl, serverAppId } from '../../Utils.js';
+import { createProxyUrl } from '../parsefunction/getSignedUrl.js';
 
 const execAsync = promisify(exec);
 
@@ -209,7 +210,9 @@ export default async function docxtopdf(req, res) {
       fileUrl = fileRes.url;
     }
 
-    return res.status(200).json({ message: 'success.', url: fileUrl });
+    // IMPORTANT: never return raw S3 URLs to the browser (CORS).
+    const safeUrl = fileUrl?.includes('files') ? fileUrl : createProxyUrl(fileUrl, 900);
+    return res.status(200).json({ message: 'success.', url: safeUrl });
   } catch (err) {
     // More specific error messages
     let msg =

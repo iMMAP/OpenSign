@@ -1,10 +1,10 @@
 import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import fs from 'node:fs/promises';
 import pLimit from 'p-limit';
-import { serverAppId } from '../../../Utils.js';
+import { cloudServerUrl, serverAppId } from '../../../Utils.js';
 
 // === Configuration ===
-const serverHost = new URL(process.env.SERVER_URL).hostname;
+const serverHost = new URL(process.env.SERVER_URL || cloudServerUrl).hostname;
 const LOCAL_HOSTS = ['localhost', '127.0.0.1', serverHost];
 const CONCURRENCY_LIMIT = 5;
 

@@ -46,20 +46,35 @@ export default async function getPresignedUrl(url) {
   if (url?.includes('files')) {
     return presignedlocalUrl(url);
   } else {
-    const client = makeS3Client();
-
-    const bucket = process.env.DO_SPACE;
-
-    const key = extractKeyFromUrl(url);
-
-    const command = new GetObjectCommand({ Bucket: bucket, Key: key });
-    // Expires: 160 seconds
-    const expiresIn = 160;
-
-    // presignedGETURL return presignedUrl with expires time
-    const presignedGETURL = await presign(client, command, { expiresIn });
-    return presignedGETURL;
+    // For remote storage, return an app-owned proxy URL so the client never sees S3 URLs
+    // (and avoids S3 CORS issues).
+    return createProxyUrl(url);
   }
+}
+
+function getPublicOrigin() {
+  // cloudServerUrl often includes /app; we only want the origin.
+  const serverUrl = process.env.SERVER_URL || process.env.CLOUD_SERVER_URL || process.env.PARSE_SERVER_URL;
+  try {
+    if (serverUrl) return new URL(serverUrl).origin;
+  } catch {
+    // ignore
+  }
+  // Fallback: DO_BASEURL is typically like https://<bucket>.<region>... but we want our own server.
+  // If SERVER_URL isn't provided, the proxy still works when called relative from the client.
+  return '';
+}
+
+function createProxyUrl(remoteUrl, expirationTimeInSeconds) {
+  const secretKey = process.env.MASTER_KEY;
+  const exp = expirationTimeInSeconds || 200;
+  const payload = {
+    url: remoteUrl,
+    exp: Math.floor(Date.now() / 1000) + exp,
+  };
+  const token = jwt.sign(payload, secretKey);
+  const origin = getPublicOrigin();
+  return `${origin}/proxy/s3?token=${token}`;
 }
 
 export async function getSignedUrl(request) {
@@ -92,8 +107,7 @@ export async function getSignedUrl(request) {
             }
           }
 
-          const presignedUrl = await getPresignedUrl(url);
-          return presignedUrl;
+          return createProxyUrl(url, 160);
         } else {
           return url;
         }
@@ -109,8 +123,7 @@ export async function getSignedUrl(request) {
         if (url?.includes('files')) {
           return presignedlocalUrl(url);
         } else if (useLocal !== 'true') {
-          const presignedUrl = await getPresignedUrl(url);
-          return presignedUrl;
+          return createProxyUrl(url, 160);
         } else {
           return url;
         }

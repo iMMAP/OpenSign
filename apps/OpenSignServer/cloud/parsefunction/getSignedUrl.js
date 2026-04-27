@@ -74,7 +74,7 @@ export function createProxyUrl(remoteUrl, expirationTimeInSeconds) {
   };
   const token = jwt.sign(payload, secretKey);
   const origin = getPublicOrigin();
-  const mountPath = process.env.PARSE_MOUNT || '/app';
+  const mountPath = process.env.PARSE_MOUNT_PATH || '/app';
   // Proxy route is mounted both at / and at the Parse mount path; prefer mount path for hosted setups.
   return `${origin}${mountPath}/proxy/s3?token=${token}`;
 }

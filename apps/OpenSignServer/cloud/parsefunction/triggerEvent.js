@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { cloudServerUrl, serverAppId } from '../../Utils.js';
+import { sendWebhookEvent } from '../helpers/apiIntegration.js';
 
 export default async function triggerEvent(request) {
   const event = request.params.event;
@@ -12,7 +13,7 @@ export default async function triggerEvent(request) {
 
   try {
     const docQuery = new Parse.Query('contracts_Document');
-    docQuery.select(['Name', 'IsEnableOTP', 'SignedUrl', 'AuditTrail']);
+    docQuery.select(['Name', 'IsEnableOTP', 'SignedUrl', 'AuditTrail', 'CreatedBy']);
     const docRes = await docQuery.get(docId, { useMasterKey: true });
     const _docRes = docRes && docRes?.toJSON();
     const isEnableOTP = docRes?.get('IsEnableOTP') || false;
@@ -74,6 +75,31 @@ export default async function triggerEvent(request) {
       updateDoc.id = docRes.id;
       updateDoc.set('AuditTrail', updatedAuditTrail);
       await updateDoc.save(null, { useMasterKey: true });
+    }
+
+    const eventMap = {
+      viewed: 'document.viewed',
+      completed: 'document.completed',
+      declined: 'document.declined',
+    };
+    const mappedEvent = eventMap[event];
+    const ownerId = docRes?.get('CreatedBy')?.id;
+    if (mappedEvent && ownerId) {
+      try {
+        await sendWebhookEvent(ownerId, {
+          event: mappedEvent,
+          documentId: docId,
+          documentName: _docRes?.Name || '',
+          contactId: contactId || null,
+          ipAddress,
+          payload: body || {},
+        });
+      } catch (webhookErr) {
+        console.log(
+          `triggerEvent webhook delivery failed: `,
+          webhookErr?.response?.data || webhookErr?.message || webhookErr
+        );
+      }
     }
 
     return { message: 'event called!' };

@@ -63,6 +63,13 @@ import getSignature from './parsefunction/getSignature.js';
 import updateEmailTemplates from './parsefunction/updateEmailTemplates.js';
 import triggerEvent from './parsefunction/triggerEvent.js';
 import setWidgetPreferences from './parsefunction/setWidgetPreferences.js';
+import {
+  generateApiToken,
+  getApiToken,
+  revokeApiToken,
+  saveWebhook,
+  getWebhook,
+} from './parsefunction/apiIntegration.js';
 
 // This afterSave function triggers after an object is added or updated in the specified class, allowing for post-processing logic.
 Parse.Cloud.afterSave('contracts_Document', DocumentAftersave);
@@ -136,3 +143,8 @@ Parse.Cloud.define('getdefaultsignature', getSignature);
 Parse.Cloud.define('updateemailtemplates', updateEmailTemplates);
 Parse.Cloud.define('triggerevent', triggerEvent);
 Parse.Cloud.define('setwidgetpreferences', setWidgetPreferences);
+Parse.Cloud.define('generateApiToken', generateApiToken);
+Parse.Cloud.define('getApiToken', getApiToken);
+Parse.Cloud.define('revokeApiToken', revokeApiToken);
+Parse.Cloud.define('saveWebhook', saveWebhook);
+Parse.Cloud.define('getWebhook', getWebhook);

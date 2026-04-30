@@ -36,6 +36,8 @@ const Preferences = lazyWithRetry(() => import("./pages/Preferences"));
 const Login = lazyWithRetry(() => import("./pages/Login"));
 const VerifyDocument = lazyWithRetry(() => import("./pages/VerifyDocument"));
 const EmailBuilder = lazyWithRetry(() => import("./pages/EmailBuilder"));
+const ApiToken = lazyWithRetry(() => import("./pages/ApiToken"));
+const Webhook = lazyWithRetry(() => import("./pages/Webhook"));
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/legacy/build/pdf.worker.min.mjs`;
 const AppLoader = () => {
@@ -101,6 +103,8 @@ function App() {
               <Route path="/profile" element={<Lazy Page={UserProfile} />} />
               <Route path="/drive" element={<Lazy Page={Opensigndrive} />} />
               <Route path="/managesign" element={<Lazy Page={ManageSign} />} />
+              <Route path="/generatetoken" element={<Lazy Page={ApiToken} />} />
+              <Route path="/webhook" element={<Lazy Page={Webhook} />} />
               <Route
                 path="/template/:templateId"
                 element={<DragProvider Page={TemplatePlaceholder} />}

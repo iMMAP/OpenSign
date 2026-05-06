@@ -17,6 +17,7 @@ import { SignPdf } from '@signpdf/signpdf';
 import { P12Signer } from '@signpdf/signer-p12';
 import { buildDownloadFilename, parseUploadFile } from '../../../utils/fileUtils.js';
 import sendMailWithAttachment from '../sendMailWithAttachment.js';
+import { sendWebhookEvent } from '../../helpers/apiIntegration.js';
 
 const serverUrl = cloudServerUrl; // process.env.SERVER_URL;
 const APPID = serverAppId;
@@ -115,6 +116,17 @@ async function updateDoc(docId, url, userId, ipAddress, data, className, sign, d
     console.log('update doc err ', err);
     return 'err';
   }
+}
+
+function buildWebhookSigners(signers) {
+  if (!Array.isArray(signers)) return [];
+  return signers
+    .map(s => ({
+      email: s?.Email || '',
+      name: s?.Name || '',
+      contactId: s?.objectId || null,
+    }))
+    .filter(s => s.email);
 }
 
 // `sendNotifyMail` is used to send notification mail of signer signed the document
@@ -480,6 +492,43 @@ async function PDF(req) {
         );
         sendNotifyMail(_resDoc, signUser, mailProvider, publicUrl);
         saveFileUsage(pdfSize, data.imageUrl, _resDoc?.CreatedBy?.objectId);
+        const ownerId = _resDoc?.CreatedBy?.objectId;
+        if (ownerId && updatedDoc?.message === 'success') {
+          const webhookPayload = {
+            objectId: req.params.docId,
+            documentId: req.params.docId,
+            documentName: _resDoc?.Name || '',
+            fileUrl: data.imageUrl,
+            signedFileUrl: data.imageUrl,
+            signerEmail: userEmail || '',
+            contactId: signUser?.objectId || null,
+            signers: buildWebhookSigners(_resDoc?.Signers),
+            payload: {
+              objectId: req.params.docId,
+              SignedUrl: data.imageUrl,
+              signerEmail: userEmail || '',
+            },
+            ipAddress: userIP || '',
+          };
+          try {
+            if (updatedDoc.isCompleted) {
+              await sendWebhookEvent(ownerId, {
+                event: 'document.completed',
+                ...webhookPayload,
+              });
+            } else {
+              await sendWebhookEvent(ownerId, {
+                event: 'document.signed',
+                ...webhookPayload,
+              });
+            }
+          } catch (webhookErr) {
+            console.log(
+              'signpdf webhook delivery failed:',
+              webhookErr?.response?.data || webhookErr?.message || webhookErr
+            );
+          }
+        }
         if (updatedDoc && updatedDoc.isCompleted) {
           const hashForDoc = documentHash || updatedDoc?.DocumentHash;
           const doc = { ..._resDoc, AuditTrail: updatedDoc.AuditTrail, SignedUrl: data.imageUrl };

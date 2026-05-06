@@ -6,6 +6,7 @@ import { withSessionValidation } from "../utils";
 
 const EVENTS = [
   { key: "document.viewed", label: "Document viewed" },
+  { key: "document.signed", label: "Document signed" },
   { key: "document.completed", label: "Document completed" },
   { key: "document.declined", label: "Document declined" }
 ];

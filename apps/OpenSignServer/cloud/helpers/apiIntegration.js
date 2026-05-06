@@ -1,7 +1,12 @@
 import crypto from 'node:crypto';
 import axios from 'axios';
 
-const EVENT_OPTIONS = ['document.viewed', 'document.completed', 'document.declined'];
+const EVENT_OPTIONS = [
+  'document.viewed',
+  'document.signed',
+  'document.completed',
+  'document.declined',
+];
 
 export function hashApiToken(token) {
   return crypto.createHash('sha256').update(token).digest('hex');

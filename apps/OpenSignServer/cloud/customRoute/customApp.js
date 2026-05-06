@@ -9,6 +9,7 @@ import { deleteUserGet } from './deleteAccount/deleteUserGet.js';
 import { deleteUserOtp } from './deleteAccount/deleteUserOtp.js';
 import { proxyS3 } from './proxyS3.js';
 import { authenticateApiToken, getWebhookByToken, saveWebhookByToken } from './apiTokenAuth.js';
+import { createDocumentHandler } from './createDocument.js';
 
 export const app = express();
 
@@ -26,3 +27,4 @@ app.post('/deleteuser/:userId', deleteUserByAdmin);
 app.get('/proxy/s3', proxyS3);
 app.get('/webhook', authenticateApiToken, getWebhookByToken);
 app.post('/webhook', authenticateApiToken, saveWebhookByToken);
+app.post('/createdocument', authenticateApiToken, createDocumentHandler);

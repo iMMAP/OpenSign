@@ -69,13 +69,13 @@ if (smtpenable) {
       secure: smtpsecure,
     };
 
-    // ✅ Add auth only if BOTH username & password exist
-    const smtpUser = process.env.SMTP_USERNAME;
+    // Auth requires login user + password. Login falls back to SMTP_USER_EMAIL when SMTP_USERNAME omitted (.env.example only documented the latter).
+    const smtpUser = process.env.SMTP_USERNAME || process.env.SMTP_USER_EMAIL;
     const smtpPass = process.env.SMTP_PASS;
 
     if (smtpUser && smtpPass) {
       transporterConfig.auth = {
-        user: process.env.SMTP_USERNAME ? process.env.SMTP_USERNAME : process.env.SMTP_USER_EMAIL,
+        user: smtpUser,
         pass: smtpPass,
       };
     }
@@ -83,9 +83,7 @@ if (smtpenable) {
     // Don't let SMTP DNS/network delays block server startup.
     await Promise.race([
       transporterMail.verify(),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('SMTP verify timeout')), 2000)
-      ),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('SMTP verify timeout')), 2000)),
     ]);
     isMailAdapter = true;
   } catch (err) {

@@ -24,7 +24,15 @@ function toBase64(str) {
 
 function sanitizeFileName(name) {
   const base = String(name || 'document.pdf').trim() || 'document.pdf';
-  return base.replace(/[\\/:*?"<>|\u0000-\u001F]/g, '_').slice(0, 180);
+  const stem = base.replace(/\.pdf$/i, '');
+  const deaccented = stem.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const safe = deaccented
+    .replace(/[\\/:*?"<>|\u0000-\u001F]/g, '_')
+    .replace(/[^a-zA-Z0-9._-]+/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^[_-]+|[_-]+$/g, '')
+    .slice(0, 160);
+  return `${safe || 'document'}.pdf`;
 }
 
 /**

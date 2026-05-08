@@ -7,6 +7,10 @@ const Menu = ({ item, isOpen, closeSidebar }) => {
   const drivename = appName;
   const { t } = useTranslation();
   const { selectedMenu } = useSelector((state) => state.sidebar);
+  const menuLabel =
+    item.objectId === "drive"
+      ? "iMMAP Sign Drive"
+      : t(`sidebar.${item.title}`, { appName: drivename });
 
   return (
     <li key={item.title} role="none" className="my-0.5">
@@ -27,7 +31,7 @@ const Menu = ({ item, isOpen, closeSidebar }) => {
           <i className={`${item.icon} text-[20px]`} aria-hidden="true"></i>
         </span>
         <span className="flex items-center mb-0.5">
-          {t(`sidebar.${item.title}`, { appName: drivename })}
+          {menuLabel}
         </span>
       </NavLink>
     </li>

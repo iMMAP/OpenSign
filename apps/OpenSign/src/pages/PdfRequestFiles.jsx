@@ -795,16 +795,26 @@ function PdfRequestFiles(
                     sendmail !== "false" &&
                     sendInOrder
                   ) {
-                    const mailBody =
-                          tenantMailTemplate?.body;
-                    const mailSubject =
-                          tenantMailTemplate?.subject;
+                    // Prefer templates from the freshly fetched document/tenant payload
+                    // to avoid race conditions with async React state updates.
+                    const docTemplateBody =
+                      updatedDoc.updatedPdfDetails?.[0]?.RequestBody;
+                    const docTemplateSubject =
+                      updatedDoc.updatedPdfDetails?.[0]?.RequestSubject;
+                    const tenantTemplateBody =
+                      updatedDoc.updatedPdfDetails?.[0]?.ExtUserPtr?.TenantId
+                        ?.RequestBody;
+                    const tenantTemplateSubject =
+                      updatedDoc.updatedPdfDetails?.[0]?.ExtUserPtr?.TenantId
+                        ?.RequestSubject;
                     const requestBody =
-                      updatedDoc.updatedPdfDetails?.[0]?.RequestBody ||
-                      mailBody;
+                      docTemplateBody ||
+                      tenantTemplateBody ||
+                      tenantMailTemplate?.body;
                     const requestSubject =
-                      updatedDoc.updatedPdfDetails?.[0]?.RequestSubject ||
-                      mailSubject;
+                      docTemplateSubject ||
+                      tenantTemplateSubject ||
+                      tenantMailTemplate?.subject;
                     if (user) {
                       const expireDate = expiry;
                       const newDate = new Date(expireDate);

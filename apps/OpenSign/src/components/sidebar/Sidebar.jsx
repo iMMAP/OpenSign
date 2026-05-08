@@ -115,9 +115,9 @@ const Sidebar = () => {
           )}
         </ul>
       </nav>
-        <footer className="my-3 flex justify-center items-center text-[25px] text-base-content gap-3">
+        {/* <footer className="my-3 flex justify-center items-center text-[25px] text-base-content gap-3">
           <SocialMedia />
-        </footer>
+        </footer> */}
     </aside>
   );
 };

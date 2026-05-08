@@ -22,8 +22,7 @@ import SelectLanguage from "../components/pdf/SelectLanguage";
 import immapLogo from "../assets/images/logo-white.png";
 
 function Login() {
-  const appName =
-    "OpenSign™";
+  const appName = "iMMAP Sign";
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();

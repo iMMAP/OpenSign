@@ -88,12 +88,12 @@ const Sidebar = () => {
     >
       <nav
         className="op-menu op-menu-sm pt-4"
-        aria-label="OpenSign Sidebar Navigation"
+        aria-label="iMMAP Sign Sidebar Navigation"
       >
         <ul
           className="text-sm"
           role="menubar"
-          aria-label="OpenSign Sidebar Navigation"
+          aria-label="iMMAP Sign Sidebar Navigation"
         >
           {menuList.map((item) =>
             !item.children ? (

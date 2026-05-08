@@ -204,32 +204,32 @@ async function sendCompletedMail(obj) {
     `<p style='padding:20px;font-family:system-ui;font-size:14px'>All parties have successfully signed the document <b>"${pdfName}"</b>. Kindly download the document from the attachment.</p>` +
     `</div></div><div><p>This is an automated email from ${TenantAppName}. For any queries regarding this email, please contact the sender ${sender.Email} directly.</p></div></div></body></html>`;
 
-  if (obj?.isCustomMail) {
-    const tenant = sender?.TenantId;
-    if (tenant) {
-      subject = tenant?.CompletionSubject ? tenant?.CompletionSubject : subject;
-      body = tenant?.CompletionBody ? tenant?.CompletionBody : body;
-    } else {
-      const userId = sender?.CreatedBy?.objectId || sender?.UserId?.objectId;
-      if (userId) {
-        try {
-          const tenantQuery = new Parse.Query('partners_Tenant');
-          tenantQuery.equalTo('UserId', {
-            __type: 'Pointer',
-            className: '_User',
-            objectId: userId,
-          });
-          const tenantRes = await tenantQuery.first({ useMasterKey: true });
-          if (tenantRes) {
-            const _tenantRes = JSON.parse(JSON.stringify(tenantRes));
-            subject = _tenantRes?.CompletionSubject ? tenant?.CompletionSubject : subject;
-            body = _tenantRes?.CompletionBody ? tenant?.CompletionBody : body;
-          }
-        } catch (err) {
-          console.log('error in fetch tenant in signpdf', err.message);
-        }
+  // Always prefer tenant Preferences completion template when available.
+  // (Previously this was gated by isCustomMail and could be skipped.)
+  let tenantTemplate = sender?.TenantId || null;
+  if (!tenantTemplate) {
+    const userId = sender?.CreatedBy?.objectId || sender?.UserId?.objectId;
+    if (userId) {
+      try {
+        const tenantQuery = new Parse.Query('partners_Tenant');
+        tenantQuery.equalTo('UserId', {
+          __type: 'Pointer',
+          className: '_User',
+          objectId: userId,
+        });
+        const tenantRes = await tenantQuery.first({ useMasterKey: true });
+        tenantTemplate = tenantRes ? JSON.parse(JSON.stringify(tenantRes)) : null;
+      } catch (err) {
+        console.log('error in fetch tenant in signpdf', err.message);
       }
     }
+  }
+  if (tenantTemplate) {
+    subject = tenantTemplate?.CompletionSubject || subject;
+    body = tenantTemplate?.CompletionBody || body;
+  }
+
+  if (obj?.isCustomMail || tenantTemplate) {
     const expireDate = doc.ExpiryDate.iso;
     const newDate = new Date(expireDate);
     const localExpireDate = newDate.toLocaleDateString('en-US', {

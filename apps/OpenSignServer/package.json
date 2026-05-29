@@ -20,6 +20,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1008.0",
     "@aws-sdk/s3-request-presigner": "^3.1008.0",
+    "@azure/msal-node": "^3.8.10",
     "@parse/fs-files-adapter": "^3.0.0",
     "@parse/push-adapter": "^8.3.1",
     "@parse/s3-files-adapter": "5.0.0",

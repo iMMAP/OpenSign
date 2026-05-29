@@ -34,6 +34,7 @@ const UpdateExistUserAdmin = lazyWithRetry(
 );
 const Preferences = lazyWithRetry(() => import("./pages/Preferences"));
 const Login = lazyWithRetry(() => import("./pages/Login"));
+const MicrosoftLogin = lazyWithRetry(() => import("./pages/MicrosoftLogin"));
 const VerifyDocument = lazyWithRetry(() => import("./pages/VerifyDocument"));
 const EmailBuilder = lazyWithRetry(() => import("./pages/EmailBuilder"));
 const ApiToken = lazyWithRetry(() => import("./pages/ApiToken"));
@@ -69,6 +70,10 @@ function App() {
           <Routes>
             <Route element={<ValidateRoute />}>
               <Route exact path="/" element={<Lazy Page={Login} />} />
+                  <Route
+                    path="/microsoft-login"
+                    element={<Lazy Page={MicrosoftLogin} />}
+                  />
                   <Route path="/addadmin" element={<Lazy Page={AddAdmin} />} />
                   <Route
                     path="/upgrade-2.1"

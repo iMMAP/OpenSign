@@ -34,8 +34,11 @@ export default async function forwardDoc(request) {
 
       try {
         let mailRes;
+        const brandLogoUrl = (process.env.IMMAP_BRAND_LOGO_URL || '').trim();
         for (let i = 0; i < recipients.length; i++) {
-          const logo = `<img src='https://qikinnovation.ams3.digitaloceanspaces.com/logo.png' height='50' style='padding:20px'/>`;
+          const logo = brandLogoUrl
+            ? `<img src='${brandLogoUrl}' height='50' style='padding:20px' alt='iMMAP Sign'/>`
+            : '';
 
           const themeColor = '#47a3ad';
 

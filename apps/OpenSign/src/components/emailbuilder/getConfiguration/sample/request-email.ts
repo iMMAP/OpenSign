@@ -2,8 +2,7 @@ import { TEditorConfiguration } from "../../documents/editor/core";
 
 const getRequestEmail = (
 ): TEditorConfiguration => {
-  const appName =
-    "OpenSign™";
+  const appName = "iMMAP Sign";
 
   const logoBlock =
         {
@@ -16,7 +15,7 @@ const getRequestEmail = (
               props: {
                 width: null,
                 height: 50,
-                url: "https://qikinnovation.ams3.digitaloceanspaces.com/logo.png",
+                url: "/src/assets/images/immap-logo-white.png",
                 alt: "logo",
                 linkHref: null,
                 contentAlignment: "middle"
@@ -52,7 +51,7 @@ const getRequestEmail = (
       data: {
         style: {
           color: "#FFFFFF",
-          backgroundColor: "#47A3AD",
+          backgroundColor: "#BE1E2D",
           fontSize: 20,
           fontWeight: "bold",
           padding: {
@@ -290,7 +289,7 @@ const getRequestEmail = (
           }
         },
         props: {
-          buttonBackgroundColor: "#D46B0f",
+          buttonBackgroundColor: "#3D424A",
           buttonStyle: "rectangle",
           fullWidth: false,
           size: "medium",

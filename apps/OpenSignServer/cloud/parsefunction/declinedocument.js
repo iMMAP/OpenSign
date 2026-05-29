@@ -12,8 +12,10 @@ const headers = {
 async function sendDeclineMail(doc, publicUrl, userId, reason) {
   try {
     const TenantAppName = appName;
-    const logo =
-      "<img src='https://qikinnovation.ams3.digitaloceanspaces.com/logo.png' height='50' style='padding:20px'/>";
+    const brandLogoUrl = (process.env.IMMAP_BRAND_LOGO_URL || '').trim();
+    const logo = brandLogoUrl
+      ? `<img src='${brandLogoUrl}' height='50' style='padding:20px' alt='iMMAP Sign'/>`
+      : '';
 
     const removePrefill =
       doc?.Placeholders?.length > 0 && doc?.Placeholders?.filter(x => x?.Role !== 'prefill');

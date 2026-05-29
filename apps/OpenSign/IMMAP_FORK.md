@@ -1,6 +1,7 @@
 # iMMAP OpenSign fork: theming + upstream updates
 
 ## What changed in this fork
+- **iMMAP Microsoft login**: Server-driven Azure AD sign-in (`GET/POST …/auth/microsoft/*`) and `/microsoft-login` callback. Configure `MICROSOFT_*` in server env (see root `.env.example`). Register redirect URI `https://<opensign-host>/microsoft-login` in the same Azure app as immap-project (local: `http://localhost:3000/microsoft-login`).
 - **Theme**: Added a new DaisyUI theme named `immapLight` and set it as the default light theme.
 - **Typography**: Added minimal global overrides (Barlow + background/text colors) to align with `immap-project-frontend`.
 - **Email builder**: Updated the MUI email builder palette to match iMMAP branding.

@@ -36,9 +36,7 @@ export const RenderReportCell = ({
   handleItemClick
 }) => {
   const { t } = useTranslation();
-  const appName =
-    "OpenSign™";
-  const drivename = appName === "OpenSign™" ? "OpenSign™" : "";
+  const driveLabel = "iMMAP Sign Drive";
   switch (col) {
     case "Sr.No":
       return (
@@ -84,8 +82,7 @@ export const RenderReportCell = ({
     case "Folder":
       return (
         <td key={col} className="p-2 text-center">
-          {rowData?.Folder?.Name ||
-            t("sidebar.OpenSign™ Drive", { appName: drivename })}
+          {rowData?.Folder?.Name || driveLabel}
         </td>
       );
     case "File":

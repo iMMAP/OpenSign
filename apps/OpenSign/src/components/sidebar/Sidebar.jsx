@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import Menu from "./Menu";
 import Submenu from "./SubMenu";
-import SocialMedia from "../SocialMedia";
-import sidebarList, { subSetting } from "../../json/menuJson";
-import { useNavigate } from "react-router";
+import sidebarList from "../../json/menuJson";
 import { useDispatch, useSelector } from "react-redux";
 import { useWindowSize } from "../../hook/useWindowSize";
 import {
@@ -13,23 +11,10 @@ import {
 
 const Sidebar = () => {
   const { width } = useWindowSize();
-  const navigate = useNavigate();
   const dispatch = useDispatch();
   const isOpen = useSelector((state) => state.sidebar.isOpen);
   const [menuList, setmenuList] = useState([]);
   const [submenuOpen, setSubmenuOpen] = useState(false);
-  const username = localStorage.getItem("username");
-  const tenantname = localStorage.getItem("Extand_Class")
-    ? JSON.parse(localStorage.getItem("Extand_Class"))?.[0]?.Company
-    : "";
-
-  const userInitials = (username || "")
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase())
-    .join("");
 
   useEffect(() => {
     if (localStorage.getItem("accesstoken")) {
@@ -55,9 +40,17 @@ const Sidebar = () => {
         const newSidebarList = sidebarList.map((item) => {
           if (item.title !== "Settings") return item;
           const newItem = { ...item };
-          const baseChildren = isAdmin ? subSetting : subSetting?.slice(0, 1);
-            const mysignature = newItem.children.slice(0, 1);
-            newItem.children = [...mysignature, ...baseChildren];
+          const settingChildren = Array.isArray(newItem.children)
+            ? [...newItem.children]
+            : [];
+          if (!isAdmin) {
+            newItem.children = settingChildren.filter((child) =>
+              ["managesign", "preferences"].includes(child.objectId),
+            );
+          } else {
+            // Admins must see full Settings menu including API Token and Webhook.
+            newItem.children = settingChildren;
+          }
           return newItem;
         });
         setmenuList(newSidebarList);
@@ -77,10 +70,6 @@ const Sidebar = () => {
     closeSidebar();
     setSubmenuOpen({});
   };
-  const handleProfile = () => {
-    closeSidebar();
-    navigate("/profile");
-  };
   return (
     <aside
       className={`absolute max-lg:min-h-screen lg:relative bg-base-100 overflow-y-auto transition-all z-[500] shadow-lg hide-scrollbar
@@ -88,12 +77,12 @@ const Sidebar = () => {
     >
       <nav
         className="op-menu op-menu-sm pt-4"
-        aria-label="OpenSign Sidebar Navigation"
+        aria-label="iMMAP Sign Sidebar Navigation"
       >
         <ul
           className="text-sm"
           role="menubar"
-          aria-label="OpenSign Sidebar Navigation"
+          aria-label="iMMAP Sign Sidebar Navigation"
         >
           {menuList.map((item) =>
             !item.children ? (
@@ -115,9 +104,6 @@ const Sidebar = () => {
           )}
         </ul>
       </nav>
-        <footer className="my-3 flex justify-center items-center text-[25px] text-base-content gap-3">
-          <SocialMedia />
-        </footer>
     </aside>
   );
 };

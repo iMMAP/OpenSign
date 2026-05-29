@@ -9,7 +9,7 @@ dotenv.config({ quiet: true });
 
 export const cloudServerUrl = 'http://localhost:8080/app';
 export const serverAppId = process.env.APP_ID || 'opensign';
-export const appName = 'OpenSign™';
+export const appName = 'iMMAP Sign';
 export const prefillDraftDocWidget = ['date', 'textbox', 'checkbox', 'radio button', 'image'];
 export const prefillDraftTemWidget = [
   'date',
@@ -215,10 +215,12 @@ export const getSecureUrl = url => {
 };
 
 export const mailTemplate = param => {
-  const themeColor = '#47a3ad';
+  const themeColor = '#be1e2d';
+  const ctaColor = '#3d424a';
   const subject = `${param.senderName} has requested you to sign "${param.title}"`;
   const AppName = appName;
-  const logo = `<img src='https://qikinnovation.ams3.digitaloceanspaces.com/logo.png' height='50' />`;
+  const brandLogoUrl = (process.env.IMMAP_BRAND_LOGO_URL || '').trim();
+  const logo = brandLogoUrl ? `<img src='${brandLogoUrl}' height='50' alt='iMMAP Sign' />` : '';
 
   const body =
     "<html><head><meta http-equiv='Content-Type' content='text/html;charset=UTF-8' /></head><body><div style='background-color:#f5f5f5;padding:20px'><div style='background:white;padding-bottom:20px'><div style='padding:10px'>" +
@@ -237,7 +239,7 @@ export const mailTemplate = param => {
     param.note +
     "</td></tr><tr><td></td><td></td></tr></table></div> <div style='margin-left:70px'><a target=_blank href=" +
     param.signingUrl +
-    "><button style='padding:12px;background-color:#d46b0f;color:white;border:0px;font-weight:bold;margin-top:30px'>Sign here</button></a></div><div style='display:flex;justify-content:center;margin-top:10px'></div></div></div><div><p> This is an automated email from " +
+    `><button style='padding:12px;background-color:${ctaColor};color:white;border:0px;font-weight:bold;margin-top:30px'>Sign here</button></a></div><div style='display:flex;justify-content:center;margin-top:10px'></div></div></div><div><p> This is an automated email from ` +
     AppName +
     '. For any queries regarding this email, please contact the sender ' +
     param.senderMail +

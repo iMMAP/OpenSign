@@ -73,7 +73,7 @@ const sidebarList = [
   },
   {
     icon: "fa-light fa-folder",
-    title: "OpenSign™ Drive",
+    title: "iMMAP Sign Drive",
     target: "_self",
     pageType: "",
     description: "",
@@ -160,6 +160,22 @@ const sidebarList = [
         pageType: "",
         description: "",
         objectId: "managesign"
+      },
+      {
+        icon: "fa-light fa-sliders",
+        title: "Preferences",
+        target: "_self",
+        pageType: "",
+        description: "",
+        objectId: "preferences"
+      },
+      {
+        icon: "fa-light fa-users fa-fw",
+        title: "Users",
+        target: "_self",
+        pageType: "",
+        description: "",
+        objectId: "users"
       },
       {
         icon: "fa-light fa-key",

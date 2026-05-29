@@ -54,7 +54,8 @@ export default async function getPresignedUrl(url) {
 
 function getPublicOrigin() {
   // cloudServerUrl often includes /app; we only want the origin.
-  const serverUrl = process.env.SERVER_URL || process.env.CLOUD_SERVER_URL || process.env.PARSE_SERVER_URL;
+  const serverUrl =
+    process.env.SERVER_URL || process.env.CLOUD_SERVER_URL || process.env.PARSE_SERVER_URL;
   try {
     if (serverUrl) return new URL(serverUrl).origin;
   } catch {
@@ -65,7 +66,22 @@ function getPublicOrigin() {
   return '';
 }
 
+function isProxyS3Url(remoteUrl) {
+  if (!remoteUrl) return false;
+  try {
+    const parsed = new URL(remoteUrl);
+    return parsed.pathname.endsWith('/proxy/s3');
+  } catch {
+    return false;
+  }
+}
+
 export function createProxyUrl(remoteUrl, expirationTimeInSeconds) {
+  // Avoid wrapping an already-generated proxy URL. Double-wrapping causes
+  // proxyS3 to parse "s3" as object key instead of the real storage key.
+  if (isProxyS3Url(remoteUrl)) {
+    return remoteUrl;
+  }
   const secretKey = process.env.MASTER_KEY;
   const exp = expirationTimeInSeconds || 200;
   const payload = {

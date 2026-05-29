@@ -13,8 +13,7 @@ const MailTemplateEditor = ({
   info,
   tenantId,
 }) => {
-  const appName =
-    "OpenSign™";
+  const appName = "iMMAP Sign";
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const [requestBody, setRequestBody] = useState({ basic: "", advanced: "" });

@@ -17,12 +17,13 @@ import { SignPdf } from '@signpdf/signpdf';
 import { P12Signer } from '@signpdf/signer-p12';
 import { buildDownloadFilename, parseUploadFile } from '../../../utils/fileUtils.js';
 import sendMailWithAttachment from '../sendMailWithAttachment.js';
+import { sendWebhookEvent } from '../../helpers/apiIntegration.js';
 
 const serverUrl = cloudServerUrl; // process.env.SERVER_URL;
 const APPID = serverAppId;
 const masterKEY = process.env.MASTER_KEY;
-const eSignName = 'OpenSign';
-const eSigncontact = 'hello@opensignlabs.com';
+const eSignName = 'iMMAP Sign';
+const eSigncontact = 'info@immap.org';
 const docUrl = `${serverUrl}/classes/contracts_Document`;
 const headers = {
   'Content-Type': 'application/json',
@@ -117,12 +118,25 @@ async function updateDoc(docId, url, userId, ipAddress, data, className, sign, d
   }
 }
 
+function buildWebhookSigners(signers) {
+  if (!Array.isArray(signers)) return [];
+  return signers
+    .map(s => ({
+      email: s?.Email || '',
+      name: s?.Name || '',
+      contactId: s?.objectId || null,
+    }))
+    .filter(s => s.email);
+}
+
 // `sendNotifyMail` is used to send notification mail of signer signed the document
 async function sendNotifyMail(doc, signUser, mailProvider, publicUrl) {
   try {
     const TenantAppName = appName;
-    const logo =
-      "<img src='https://qikinnovation.ams3.digitaloceanspaces.com/logo.png' height='50' style='padding:20px'/>";
+    const brandLogoUrl = (process.env.IMMAP_BRAND_LOGO_URL || '').trim();
+    const logo = brandLogoUrl
+      ? `<img src='${brandLogoUrl}' height='50' style='padding:20px' alt='iMMAP Sign'/>`
+      : '';
 
     const auditTrailCount = doc?.AuditTrail?.filter(x => x.Activity === 'Signed')?.length || 0;
     const removePrefill =
@@ -140,7 +154,7 @@ async function sendNotifyMail(doc, signUser, mailProvider, publicUrl) {
       const subject = `Document "${pdfName}" has been signed by ${signerName}`;
       const body =
         "<html><head><meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/></head><body><div style='background-color:#f5f5f5;padding:20px'><div style='background-color:white'>" +
-        `<div>${logo}</div><div style='padding:2px;font-family:system-ui;background-color:#47a3ad'><p style='font-size:20px;font-weight:400;color:white;padding-left:20px'>Document signed by ${signerName}</p>` +
+        `<div>${logo}</div><div style='padding:2px;font-family:system-ui;background-color:#be1e2d'><p style='font-size:20px;font-weight:400;color:white;padding-left:20px'>Document signed by ${signerName}</p>` +
         `</div><div style='padding:20px;font-family:system-ui;font-size:14px'><p>Dear ${creatorName},</p><p>${pdfName} has been signed by ${signerName} "${signerEmail}" successfully</p>` +
         `<p><a href=${viewDocUrl} target=_blank>View Document</a></p></div></div><div><p>This is an automated email from ${TenantAppName}. For any queries regarding this email, ` +
         `please contact the sender ${creatorEmail} directly.</p></div></div></body></html>`;
@@ -168,8 +182,10 @@ async function sendCompletedMail(obj) {
   const sender = obj.doc.ExtUserPtr;
   const pdfName = doc.Name;
   const TenantAppName = appName;
-  const logo =
-    "<img src='https://qikinnovation.ams3.digitaloceanspaces.com/logo.png' height='50' style='padding:20px'/>";
+  const brandLogoUrl = (process.env.IMMAP_BRAND_LOGO_URL || '').trim();
+  const logo = brandLogoUrl
+    ? `<img src='${brandLogoUrl}' height='50' style='padding:20px' alt='iMMAP Sign'/>`
+    : '';
 
   let signersMail;
   if (doc?.Signers?.length > 0) {
@@ -184,36 +200,36 @@ async function sendCompletedMail(obj) {
   let subject = `Document "${pdfName}" has been signed by all parties`;
   let body =
     "<html><head><meta http-equiv='Content-Type' content='text/html; charset=UTF-8' /></head><body><div style='background-color:#f5f5f5;padding:20px'><div style='background-color:white'>" +
-    `<div>${logo}</div><div style='padding:2px;font-family:system-ui;background-color:#47a3ad'><p style='font-size:20px;font-weight:400;color:white;padding-left:20px'>Document signed successfully</p></div><div>` +
+    `<div>${logo}</div><div style='padding:2px;font-family:system-ui;background-color:#be1e2d'><p style='font-size:20px;font-weight:400;color:white;padding-left:20px'>Document signed successfully</p></div><div>` +
     `<p style='padding:20px;font-family:system-ui;font-size:14px'>All parties have successfully signed the document <b>"${pdfName}"</b>. Kindly download the document from the attachment.</p>` +
     `</div></div><div><p>This is an automated email from ${TenantAppName}. For any queries regarding this email, please contact the sender ${sender.Email} directly.</p></div></div></body></html>`;
 
-  if (obj?.isCustomMail) {
-    const tenant = sender?.TenantId;
-    if (tenant) {
-      subject = tenant?.CompletionSubject ? tenant?.CompletionSubject : subject;
-      body = tenant?.CompletionBody ? tenant?.CompletionBody : body;
-    } else {
-      const userId = sender?.CreatedBy?.objectId || sender?.UserId?.objectId;
-      if (userId) {
-        try {
-          const tenantQuery = new Parse.Query('partners_Tenant');
-          tenantQuery.equalTo('UserId', {
-            __type: 'Pointer',
-            className: '_User',
-            objectId: userId,
-          });
-          const tenantRes = await tenantQuery.first({ useMasterKey: true });
-          if (tenantRes) {
-            const _tenantRes = JSON.parse(JSON.stringify(tenantRes));
-            subject = _tenantRes?.CompletionSubject ? tenant?.CompletionSubject : subject;
-            body = _tenantRes?.CompletionBody ? tenant?.CompletionBody : body;
-          }
-        } catch (err) {
-          console.log('error in fetch tenant in signpdf', err.message);
-        }
+  // Always prefer tenant Preferences completion template when available.
+  // (Previously this was gated by isCustomMail and could be skipped.)
+  let tenantTemplate = sender?.TenantId || null;
+  if (!tenantTemplate) {
+    const userId = sender?.CreatedBy?.objectId || sender?.UserId?.objectId;
+    if (userId) {
+      try {
+        const tenantQuery = new Parse.Query('partners_Tenant');
+        tenantQuery.equalTo('UserId', {
+          __type: 'Pointer',
+          className: '_User',
+          objectId: userId,
+        });
+        const tenantRes = await tenantQuery.first({ useMasterKey: true });
+        tenantTemplate = tenantRes ? JSON.parse(JSON.stringify(tenantRes)) : null;
+      } catch (err) {
+        console.log('error in fetch tenant in signpdf', err.message);
       }
     }
+  }
+  if (tenantTemplate) {
+    subject = tenantTemplate?.CompletionSubject || subject;
+    body = tenantTemplate?.CompletionBody || body;
+  }
+
+  if (obj?.isCustomMail || tenantTemplate) {
     const expireDate = doc.ExpiryDate.iso;
     const newDate = new Date(expireDate);
     const localExpireDate = newDate.toLocaleDateString('en-US', {
@@ -480,6 +496,43 @@ async function PDF(req) {
         );
         sendNotifyMail(_resDoc, signUser, mailProvider, publicUrl);
         saveFileUsage(pdfSize, data.imageUrl, _resDoc?.CreatedBy?.objectId);
+        const ownerId = _resDoc?.CreatedBy?.objectId;
+        if (ownerId && updatedDoc?.message === 'success') {
+          const webhookPayload = {
+            objectId: req.params.docId,
+            documentId: req.params.docId,
+            documentName: _resDoc?.Name || '',
+            fileUrl: data.imageUrl,
+            signedFileUrl: data.imageUrl,
+            signerEmail: userEmail || '',
+            contactId: signUser?.objectId || null,
+            signers: buildWebhookSigners(_resDoc?.Signers),
+            payload: {
+              objectId: req.params.docId,
+              SignedUrl: data.imageUrl,
+              signerEmail: userEmail || '',
+            },
+            ipAddress: userIP || '',
+          };
+          try {
+            if (updatedDoc.isCompleted) {
+              await sendWebhookEvent(ownerId, {
+                event: 'document.completed',
+                ...webhookPayload,
+              });
+            } else {
+              await sendWebhookEvent(ownerId, {
+                event: 'document.signed',
+                ...webhookPayload,
+              });
+            }
+          } catch (webhookErr) {
+            console.log(
+              'signpdf webhook delivery failed:',
+              webhookErr?.response?.data || webhookErr?.message || webhookErr
+            );
+          }
+        }
         if (updatedDoc && updatedDoc.isCompleted) {
           const hashForDoc = documentHash || updatedDoc?.DocumentHash;
           const doc = { ..._resDoc, AuditTrail: updatedDoc.AuditTrail, SignedUrl: data.imageUrl };

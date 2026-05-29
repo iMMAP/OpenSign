@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Parse from "parse";
 import { useDispatch } from "react-redux";
 import axios from "axios";
-import { NavLink, useNavigate, useLocation } from "react-router";
+import { NavLink, useNavigate, useLocation, useSearchParams } from "react-router";
 import ModalUi from "../primitives/ModalUi";
 import {
   emailRegex,
@@ -22,11 +22,11 @@ import SelectLanguage from "../components/pdf/SelectLanguage";
 import immapLogo from "../assets/images/logo-white.png";
 
 function Login() {
-  const appName =
-    "OpenSign™";
+  const appName = "iMMAP Sign";
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const dispatch = useDispatch();
   const [state, setState] = useState({
     email: "",
@@ -145,6 +145,34 @@ function Login() {
   const setThirdpartyLoader = (value) => {
     setState({ ...state, thirdpartyLoader: value });
   };
+
+  const handleImmapLogin = async () => {
+    try {
+      setThirdpartyLoader(true);
+      const baseUrl = localStorage.getItem("baseUrl");
+      const stateParam = location?.state?.from
+        ? `?state=${encodeURIComponent(location.state.from)}`
+        : "";
+      const res = await axios.get(`${baseUrl}auth/microsoft/consent${stateParam}`);
+      if (res.data?.url) {
+        window.location.href = res.data.url;
+      } else {
+        showToast("danger", t("something-went-wrong-mssg"));
+        setThirdpartyLoader(false);
+      }
+    } catch (error) {
+      console.error("Microsoft consent error:", error);
+      showToast("danger", t("something-went-wrong-mssg"));
+      setThirdpartyLoader(false);
+    }
+  };
+
+  const microsoftLoginError =
+    searchParams.get("error") === "microsoft_login_failed"
+      ? t("microsoft-login-failed")
+      : searchParams.get("error") === "no_code"
+        ? t("microsoft-login-no-code")
+        : "";
 
   const thirdpartyLoginfn = async (sessionToken) => {
     const baseUrl = localStorage.getItem("baseUrl");
@@ -411,7 +439,7 @@ function Login() {
     </div>
   ) : (
     <>
-      {state.loading && (
+      {(state.loading || state.thirdpartyLoader) && (
         <div
           aria-live="assertive"
           className="fixed w-full h-full flex justify-center items-center bg-black bg-opacity-30 z-50"
@@ -442,6 +470,31 @@ function Login() {
                       <legend className="text-[12px] text-[#878787] text-center">
                         {t("Login-to-your-account")}
                       </legend>
+                      {microsoftLoginError && (
+                        <div
+                          className="mt-3 px-3 py-2 text-xs text-error bg-error/10 rounded"
+                          role="alert"
+                        >
+                          {microsoftLoginError}
+                        </div>
+                      )}
+                      <div className="mt-4">
+                        <button
+                          type="button"
+                          className="op-btn op-btn-outline op-btn-primary w-full text-[#be2126] border-[#be2126]"
+                          disabled={state.loading || state.thirdpartyLoader}
+                          onClick={handleImmapLogin}
+                        >
+                          {state.thirdpartyLoader
+                            ? t("loading")
+                            : t("use-immap-account")}
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-3 my-4">
+                        <hr className="flex-1 border-base-300" />
+                        <span className="text-xs text-[#878787]">{t("or-use")}</span>
+                        <hr className="flex-1 border-base-300" />
+                      </div>
                       <div className="w-full px-6 py-3 my-1 op-card bg-base-100 shadow-md outline outline-1 outline-slate-300/50">
                         <label className="block text-xs" htmlFor="email">
                           {t("email")}

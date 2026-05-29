@@ -23,11 +23,20 @@ function makeS3Client() {
   });
 }
 
-function extractKeyFromUrl(url) {
+function extractKeyFromUrl(url, bucket) {
   const parsedUrl = new URL(url);
-  const pathname = parsedUrl.pathname;
-  const filename = pathname.substring(pathname.lastIndexOf('/') + 1);
-  return filename;
+  const pathWithoutLeadingSlash = decodeURIComponent(parsedUrl.pathname).replace(/^\/+/, '');
+  if (!pathWithoutLeadingSlash) return '';
+
+  const segments = pathWithoutLeadingSlash.split('/').filter(Boolean);
+  if (segments.length === 0) return '';
+
+  // Path-style URLs can include the bucket as the first segment: /<bucket>/<key>
+  if (bucket && segments[0] === bucket) {
+    segments.shift();
+  }
+
+  return segments.join('/');
 }
 
 function parseRangeHeader(rangeHeader) {
@@ -75,7 +84,7 @@ export async function proxyS3(req, res) {
     const bucket = process.env.DO_SPACE;
     if (!bucket) return res.status(500).json({ message: 'missing bucket' });
 
-    const key = extractKeyFromUrl(url);
+    const key = extractKeyFromUrl(url, bucket);
     if (!key) return res.status(400).json({ message: 'invalid key' });
 
     const range = parseRangeHeader(req.headers.range);
@@ -120,4 +129,3 @@ export async function proxyS3(req, res) {
     return res.status(500).json({ message: 'proxy error' });
   }
 }
-

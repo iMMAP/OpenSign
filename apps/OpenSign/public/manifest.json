@@ -1,6 +1,6 @@
 {
-  "short_name": "Open sign",
-  "name": "Open sign",
+  "short_name": "iMMAP Sign",
+  "name": "iMMAP Sign",
   "icons": [
     {
       "src": "favicon.ico",
@@ -8,18 +8,18 @@
       "type": "image/x-icon"
     },
     {
-      "src": "logo192.png",
+      "src": "/src/assets/images/immap-logo-white.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "logo512.png",
+      "src": "/src/assets/images/logo-white.png",
       "type": "image/png",
       "sizes": "512x512"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
+  "theme_color": "#be1e2d",
   "background_color": "#ffffff"
 }

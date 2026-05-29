@@ -4,6 +4,9 @@ import fontkit from '@pdf-lib/fontkit';
 import { formatDateTime } from '../../../Utils.js';
 
 export default async function GenerateCertificate(docDetails) {
+  const brandName = 'iMMAP Sign';
+  const brandPrimary = rgb(0.745, 0.118, 0.176); // #be1e2d
+  const brandDark = rgb(0.239, 0.259, 0.29); // #3d424a
   const timezone = docDetails?.ExtUserPtr?.Timezone || '';
   const Is12Hr = docDetails?.ExtUserPtr?.Is12HourTime || false;
   const DateFormat = docDetails?.ExtUserPtr?.DateFormat || 'MM/DD/YYYY';
@@ -19,14 +22,14 @@ export default async function GenerateCertificate(docDetails) {
   const startX = 15;
   const startY = 15;
   const borderColor = rgb(0.12, 0.12, 0.12);
-  const titleColor = rgb(0, 0.2, 0.4); //rgb(0, 0.53, 0.71);
-  const titleUnderline = rgb(0, 0.2, 0.4); // rgb(0.12, 0.12, 0.12);
+  const titleColor = brandPrimary;
+  const titleUnderline = brandPrimary;
   const title = 25;
   const subtitle = 16;
   const text = 13;
   const signertext = 13;
   const timeText = 11;
-  const textKeyColor = rgb(0.12, 0.12, 0.12);
+  const textKeyColor = brandDark;
   const textValueColor = rgb(0.3, 0.3, 0.3);
   const completedAt = docDetails?.completedAt ? new Date(docDetails?.completedAt) : new Date();
   const completedAtperTimezone = formatDateTime(completedAt, DateFormat, timezone, Is12Hr);
@@ -93,6 +96,13 @@ export default async function GenerateCertificate(docDetails) {
     size: 12,
     font: timesRomanFont,
     color: rgb(0.12, 0.12, 0.12),
+  });
+  page.drawText(brandName, {
+    x: 30,
+    y: 812,
+    size: 10,
+    font: timesRomanFont,
+    color: brandDark,
   });
 
   page.drawText('Certificate of Completion', {

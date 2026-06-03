@@ -30,8 +30,8 @@ const AppLoader = () => {
 };
 function Opensigndrive() {
   const appName =
-    "OpenSign™";
-  const drivename = appName === "OpenSign™" ? "OpenSign™" : "";
+    "iMMAP Sign";
+  const drivename = appName === "iMMAP Sign" ? "iMMAP Sign" : "";
   const { t } = useTranslation();
   const navigate = useNavigate();
   const scrollRef = useRef(null);

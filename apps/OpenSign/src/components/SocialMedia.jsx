@@ -14,7 +14,7 @@ const SocialMedia = () => {
       >
         <i aria-hidden="true" className="fa-brands fa-github"></i>
         <span className="fa-sr-only">
-          OpenSign&apos;s {t("social-media.github")}
+          iMMAP Sign&apos;s {t("social-media.github")}
         </span>
       </NavLink>
       <NavLink
@@ -24,7 +24,7 @@ const SocialMedia = () => {
       >
         <i aria-hidden="true" className="fa-brands fa-linkedin"></i>
         <span className="fa-sr-only">
-          OpenSign&apos;s {t("social-media.linked-in")}
+          iMMAP Sign&apos;s {t("social-media.linked-in")}
         </span>
       </NavLink>
       <NavLink
@@ -34,7 +34,7 @@ const SocialMedia = () => {
       >
         <i aria-hidden="true" className="fa-brands fa-square-x-twitter"></i>
         <span className="fa-sr-only">
-          OpenSign&apos;s {t("social-media.twitter")}
+          iMMAP Sign&apos;s {t("social-media.twitter")}
         </span>
       </NavLink>
       <NavLink
@@ -44,7 +44,7 @@ const SocialMedia = () => {
       >
         <i aria-hidden="true" className="fa-brands fa-discord"></i>
         <span className="fa-sr-only">
-          OpenSign&apos;s {t("social-media.discord")}
+          iMMAP Sign&apos;s {t("social-media.discord")}
         </span>
       </NavLink>
     </React.Fragment>

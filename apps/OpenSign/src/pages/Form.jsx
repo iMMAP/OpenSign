@@ -48,7 +48,7 @@ function Form() {
 
 const Forms = (props) => {
   const appName =
-    "OpenSign™";
+    "iMMAP Sign";
   const { t } = useTranslation();
   const abortController = new AbortController();
   const inputFileRef = useRef(null);

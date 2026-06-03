@@ -288,7 +288,7 @@ export async function createDocumentHandler(req, res) {
     const extUser = await extCls.first({ useMasterKey: true });
     if (!extUser) {
       return res.status(400).json({
-        error: 'No contracts_Users profile for this account; complete OpenSign onboarding first.',
+        error: 'No contracts_Users profile for this account; complete iMMAP Sign onboarding first.',
       });
     }
 

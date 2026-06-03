@@ -7,8 +7,8 @@ import { useTranslation } from "react-i18next";
 
 const SelectFolder = ({ required, onSuccess, folderCls, isReset }) => {
   const appName =
-    "OpenSign™";
-  const drivename = appName === "OpenSign™" ? "OpenSign™" : "";
+    "iMMAP Sign";
+  const drivename = appName === "iMMAP Sign" ? "iMMAP Sign" : "";
   const { t } = useTranslation();
   const [isOpen, SetIsOpen] = useState(false);
   const [clickFolder, setClickFolder] = useState("");

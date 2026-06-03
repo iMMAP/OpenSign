@@ -19,7 +19,7 @@ import SessionExpiredModal from "../primitives/SessionExpiredModal";
 
 const HomeLayout = () => {
   const appName =
-    "OpenSign™";
+    "iMMAP Sign";
   const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const tourArr = useSelector((state) => state.TourSteps);
@@ -110,15 +110,7 @@ const HomeLayout = () => {
             <div>
               {t("tour-mssg.home-layout-3", { appName })}
               <p className="mt-[3px]">
-                ⭐ Star us on
-                <a
-                  href={github}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline font-medium pl-1 cursor-pointer"
-                >
-                  GitHub
-                </a>
+                <a href="mailto:it@immap.org" className="text-blue-500 underline">Contact it@immap.org for support/help.</a>
               </p>
             </div>
           ),

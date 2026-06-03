@@ -3,7 +3,7 @@ labels: ["bug","up-for-grabs"]
 title: "[Bug]: "
 assignees:
   - andrew-opensignlabs
-description: Create a bug report to help us make OpenSign™ the world's best document e-signature platform
+description: Create a bug report to help us make iMMAP Sign the world's best document e-signature platform
 body:
   - type: textarea
     attributes:
@@ -41,7 +41,7 @@ body:
       default: 0
   - type: input
     attributes:
-      label: What version of OpenSign™ are you seeing this issue on? [e.g. 1.0.6]
+      label: What version of iMMAP Sign are you seeing this issue on? [e.g. 1.0.6]
     validations:
       required: true
   - type: dropdown

@@ -84,7 +84,7 @@ const Webhook = () => {
       <div className="w-full p-5 md:p-6">
         <h1 className="text-xl font-semibold mb-4">Webhook</h1>
         <p className="text-sm mb-4">
-          OpenSign sends signed event payloads to this URL when selected document events are triggered.
+          iMMAP Sign sends signed event payloads to this URL when selected document events are triggered.
         </p>
         <div className="mb-4">
           <label className="text-sm font-semibold mb-2 block">Webhook URL</label>

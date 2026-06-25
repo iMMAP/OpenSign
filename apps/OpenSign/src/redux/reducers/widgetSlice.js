@@ -6,6 +6,7 @@ const initialState = {
   saveSignCheckbox: { isVisible: false, signId: "" },
   signatureTypes: null,
   defaultSignImg: null,
+  defaultSignatureName: "",
   myInitial: null,
   myStamp: null,
   lastIndex: "",
@@ -33,6 +34,9 @@ const widgetSlice = createSlice({
     },
     setDefaultSignImg: (state, action) => {
       state.defaultSignImg = action.payload;
+    },
+    setDefaultSignatureName: (state, action) => {
+      state.defaultSignatureName = action.payload;
     },
     setMyInitial: (state, action) => {
       state.myInitial = action.payload;
@@ -103,6 +107,7 @@ export const {
   setMyInitial,
   resetWidgetState,
   setDefaultSignImg,
+  setDefaultSignatureName,
   setLastIndex,
   setScrollTriggerId,
   setPrefillImg,

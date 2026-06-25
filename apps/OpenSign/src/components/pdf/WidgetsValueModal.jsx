@@ -28,7 +28,8 @@ import {
   drawWidget,
   getBase64FromUrl,
   clearResponse,
-  isEmptyValue
+  isEmptyValue,
+  resolveSignerFullName
 } from "../../constant/Utils";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -80,6 +81,7 @@ function WidgetsValueModal(props) {
     signatureResponse,
     prefillImg,
     defaultSignImg,
+    defaultSignatureName,
     myInitial,
     lastIndex: lastWidget,
     typedSignFont,
@@ -433,6 +435,8 @@ function WidgetsValueModal(props) {
     let imgWH = { width: width ? width : "", height: height ? height : "" };
     setIsImageSelect(false);
     setImage();
+    const signatureNameForSave =
+      defaultSignatureName || resolveSignerFullName(typedSignature);
     if (uniqueId) {
       const isPrefill = xyPosition.some(
         (x) => x.Id === uniqueId && x?.Role === "prefill"
@@ -460,7 +464,8 @@ function WidgetsValueModal(props) {
             isAutoSign,
             widgetsType,
             fontSelect,
-            penColor
+            penColor,
+            signatureNameForSave
           );
           return {
             ...signer,
@@ -498,7 +503,8 @@ function WidgetsValueModal(props) {
         false,
         widgetsType,
         fontSelect,
-        penColor
+        penColor,
+        signatureNameForSave
       );
       setXyPosition(getUpdatePosition);
     }

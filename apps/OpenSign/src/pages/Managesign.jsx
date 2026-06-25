@@ -63,9 +63,7 @@ const ManageSign = () => {
           const res = signRes.toJSON();
           setId(res.objectId);
           if (res?.SignatureName) {
-            const sanitizename = generateTitleFromFilename(res?.SignatureName);
-            const replaceSpace = sanitizeFileName(sanitizename);
-            setSignName(replaceSpace);
+            setSignName(res.SignatureName.trim());
           }
           setImage(res?.ImageURL);
           if (res && res.Initials) {
@@ -78,9 +76,7 @@ const ManageSign = () => {
           }
         } else {
           if (User?.get("name")) {
-            const sanitizename = generateTitleFromFilename(User?.get("name"));
-            const replaceSpace = sanitizeFileName(sanitizename);
-            setSignName(replaceSpace);
+            setSignName(User.get("name").trim());
           }
         }
         setIsLoader(false);
@@ -148,14 +144,16 @@ const ManageSign = () => {
       setTimeout(() => setWarning(false), 1000);
     } else {
       setIsLoader(true);
-      const sanitizename = generateTitleFromFilename(signName);
-      const replaceSpace = sanitizeFileName(sanitizename);
+      const User = Parse.User.current();
+      const fileBaseName = sanitizeFileName(
+        generateTitleFromFilename(signName || User?.get?.("name") || "sign")
+      );
       let file;
       if (signature) {
-        file = base64StringtoFile(signature, `${replaceSpace}_sign`);
+        file = base64StringtoFile(signature, `${fileBaseName}_sign`);
       } else {
         if (image && !isUrl) {
-          file = base64StringtoFile(image, `${replaceSpace}__sign`);
+          file = base64StringtoFile(image, `${fileBaseName}__sign`);
         }
       }
       let imgUrl;
@@ -169,12 +167,12 @@ const ManageSign = () => {
 
       let initialFile;
       if (Initials) {
-        initialFile = base64StringtoFile(Initials, `${replaceSpace}_sign`);
+        initialFile = base64StringtoFile(Initials, `${fileBaseName}_sign`);
       } else {
         if (imgInitials && !isInitialsUrl) {
           initialFile = base64StringtoFile(
             imgInitials,
-            `${replaceSpace}__sign`
+            `${fileBaseName}__sign`
           );
         }
       }
@@ -188,7 +186,7 @@ const ManageSign = () => {
 
       let stampFile;
       if (stamp && !isStampUrl) {
-        stampFile = base64StringtoFile(stamp, `${replaceSpace}_stamp`);
+        stampFile = base64StringtoFile(stamp, `${fileBaseName}_stamp`);
       }
       let stampUrl;
       if (stampFile && !isStampUrl) {
@@ -198,7 +196,7 @@ const ManageSign = () => {
       }
       if (imgUrl) {
         await saveEntry({
-          name: signName,
+          name: signName.trim(),
           url: imgUrl,
           initialsUrl: initialsUrl,
           stampUrl: stampUrl
@@ -335,6 +333,18 @@ const ManageSign = () => {
         <div className="ml-[5px] my-[20px] md:m-[20px]">
           <div className="text-[20px] font-semibold m-[10px] md:m-0 mb-2">
             {t("my-signature")}
+          </div>
+          <div className="mb-4 px-[10px] md:px-0 max-w-md">
+            <label className="font-medium select-none flex mb-[8px]">
+              {t("signature-full-name")}
+            </label>
+            <input
+              type="text"
+              className="op-input op-input-bordered w-full text-base-content"
+              value={signName}
+              onChange={(e) => setSignName(e.target.value)}
+              placeholder={t("signature-full-name-placeholder")}
+            />
           </div>
           <div className="flex flex-col md:flex-row gap-2 md:gap-5">
             <div className="relative">

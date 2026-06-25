@@ -1461,6 +1461,76 @@ export function convertTextToImg(fontStyle, text, color, widgetDims) {
   return dataUrl;
 }
 
+export const SIGN_METADATA_WIDGETS = ["signature", "initials", "stamp"];
+
+export const resolveSignerFullName = (signatureNameFromProfile) => {
+  const fromProfile = signatureNameFromProfile?.trim?.();
+  if (fromProfile) {
+    return fromProfile;
+  }
+  const userName = Parse.User.current()?.get?.("name");
+  if (userName?.trim?.()) {
+    return userName.trim();
+  }
+  try {
+    const signer = JSON.parse(localStorage.getItem("signer") || "{}");
+    if (signer?.Name?.trim?.()) {
+      return signer.Name.trim();
+    }
+  } catch {
+    // ignore invalid signer cache
+  }
+  return "";
+};
+
+export const formatSignerTimestamp = (isoString) => {
+  if (!isoString) {
+    return "";
+  }
+  try {
+    const extUser = localStorage.getItem("Extand_Class");
+    const signerCache = localStorage.getItem("signer");
+    let dateFormat;
+    let timeZone;
+    let is12Hour;
+    if (extUser) {
+      const parsed = JSON.parse(extUser)?.[0];
+      dateFormat = parsed?.DateFormat;
+      timeZone = parsed?.TimeZone;
+      is12Hour = parsed?.Is12HourTimeFormat;
+    }
+    if (!dateFormat && signerCache) {
+      const parsed = JSON.parse(signerCache);
+      dateFormat = parsed?.DateFormat;
+      timeZone = parsed?.TimeZone;
+      is12Hour = parsed?.Is12HourTimeFormat;
+    }
+    return formatDateTime(
+      new Date(isoString),
+      dateFormat,
+      timeZone || "UTC",
+      is12Hour
+    );
+  } catch {
+    return new Date(isoString).toLocaleString();
+  }
+};
+
+const attachSignMetadata = (
+  position,
+  widgetsType,
+  signatureNameFromProfile
+) => {
+  if (!widgetsType || !SIGN_METADATA_WIDGETS.includes(widgetsType)) {
+    return position;
+  }
+  return {
+    ...position,
+    signerFullName: resolveSignerFullName(signatureNameFromProfile),
+    signedAt: new Date().toISOString()
+  };
+};
+
 // `onSaveSign` trigger on save button to save for signature, initials widget for type: draw, typed, default
 export function onSaveSign(
   type,
@@ -1474,7 +1544,8 @@ export function onSaveSign(
   isAutoSign,
   widgetsType,
   typeFont,
-  fontColor
+  fontColor,
+  signatureNameFromProfile
 ) {
   let getIMGWH, posWidth, posHeight;
   let getXYdata = xyPosition[index].pos;
@@ -1495,24 +1566,32 @@ export function onSaveSign(
         ? convertTextToImg(typeFont, typedSignature, fontColor, widgetDims)
         : signatureImg;
       if (widgetsType === drawWidget) {
-        return {
-          ...position,
-          options: { ...position.options, response: signImg }
-        };
+        return attachSignMetadata(
+          {
+            ...position,
+            options: { ...position.options, response: signImg }
+          },
+          widgetsType,
+          signatureNameFromProfile
+        );
       } else {
-        return {
-          ...position,
-          ...(type === "type" ? { Width: posWidth } : {}),
-          ...(type === "type" ? { Height: posHeight } : {}),
-          SignUrl: signImg,
-          ...(isSignOrInitials && { signatureType: type || "" }),
-          options: { ...position.options, response: signImg },
-          ...(typedSignature && {
-            typeSignature: typedSignature,
-            typeFont: typeFont ?? "Fasthand",
-            fontColor: fontColor ?? "blue"
-          })
-        };
+        return attachSignMetadata(
+          {
+            ...position,
+            ...(type === "type" ? { Width: posWidth } : {}),
+            ...(type === "type" ? { Height: posHeight } : {}),
+            SignUrl: signImg,
+            ...(isSignOrInitials && { signatureType: type || "" }),
+            options: { ...position.options, response: signImg },
+            ...(typedSignature && {
+              typeSignature: typedSignature,
+              typeFont: typeFont ?? "Fasthand",
+              fontColor: fontColor ?? "blue"
+            })
+          },
+          widgetsType,
+          signatureNameFromProfile
+        );
       }
     }
     return position;
@@ -1534,17 +1613,21 @@ export function onSaveSign(
           const signImg = typedSignature
             ? convertTextToImg(typeFont, typedSignature, fontColor, widgetDims)
             : signatureImg;
-          return {
-            ...item,
-            SignUrl: signImg,
-            ...(isSignOrInitials && { signatureType: type || "" }),
-            options: { ...item.options, response: signImg },
-            ...(typedSignature && {
-              typeSignature: typedSignature,
-              typeFont: typeFont || "Fasthand",
-              fontColor: fontColor || "blue"
-            })
-          };
+          return attachSignMetadata(
+            {
+              ...item,
+              SignUrl: signImg,
+              ...(isSignOrInitials && { signatureType: type || "" }),
+              options: { ...item.options, response: signImg },
+              ...(typedSignature && {
+                typeSignature: typedSignature,
+                typeFont: typeFont || "Fasthand",
+                fontColor: fontColor || "blue"
+              })
+            },
+            widgetsType,
+            signatureNameFromProfile
+          );
         }
         return item; // Otherwise, keep it unchanged
       })
@@ -1565,7 +1648,9 @@ export function clearResponse(widgetKey, placeholder = [], index) {
     return {
       ...widget,
       options: { ...widget.options, response: "" },
-      SignUrl: ""
+      SignUrl: "",
+      signerFullName: undefined,
+      signedAt: undefined
     };
   });
 
@@ -1875,6 +1960,23 @@ const getWidgetsFontColor = (type) => {
     default:
       return rgb(0, 0, 0);
   }
+};
+
+const truncateTextToWidth = (text, font, fontSize, maxWidth) => {
+  if (!text) {
+    return "";
+  }
+  let result = text;
+  while (
+    result.length > 0 &&
+    font.widthOfTextAtSize(result, fontSize) > maxWidth
+  ) {
+    result = result.slice(0, -1);
+  }
+  if (result.length < text.length && result.length > 3) {
+    return `${result.slice(0, -3)}...`;
+  }
+  return result;
 };
 export const isBase64 = (str) => {
   const base64Pattern =
@@ -2407,14 +2509,70 @@ export const embedWidgetsToDoc = async (
           // 6. Set to read‐only (if required)
           radioGroup.enableReadOnly();
         } else {
+          const hasSignMetadata =
+            SIGN_METADATA_WIDGETS.includes(position.type) &&
+            position.signerFullName;
+          const imageHeight = hasSignMetadata
+            ? widgetHeight * 0.75
+            : widgetHeight;
           const signature = {
             x: xPos(position),
             y: yPos(position),
             width: widgetWidth,
-            height: widgetHeight
+            height: imageHeight
           };
           const imageOptions = getWidgetPosition(page, signature, 1, getSize);
           page.drawImage(img, imageOptions);
+          if (hasSignMetadata) {
+            const nameFontSize = Math.min(10, Math.max(7, widgetHeight * 0.1));
+            const timeFontSize = Math.min(8, Math.max(6, widgetHeight * 0.08));
+            const textX = xPos(position);
+            const nameY = yPos(position) + imageHeight + 2;
+            const timeY = nameY + nameFontSize + 3;
+            const blackColor = getWidgetsFontColor("black");
+            const grayColor = rgb(0.35, 0.35, 0.35);
+            page.drawText(
+              truncateTextToWidth(
+                position.signerFullName,
+                font,
+                nameFontSize,
+                widgetWidth
+              ),
+              compensateRotation(
+                page.getRotation().angle,
+                textX,
+                nameY,
+                1,
+                getSize,
+                nameFontSize,
+                blackColor,
+                font,
+                page
+              )
+            );
+            const timestampText = formatSignerTimestamp(position.signedAt);
+            if (timestampText) {
+              page.drawText(
+                truncateTextToWidth(
+                  timestampText,
+                  font,
+                  timeFontSize,
+                  widgetWidth
+                ),
+                compensateRotation(
+                  page.getRotation().angle,
+                  textX,
+                  timeY,
+                  1,
+                  getSize,
+                  timeFontSize,
+                  grayColor,
+                  font,
+                  page
+                )
+              );
+            }
+          }
         }
       } catch (err) {
         console.log("Err in embed widget on page ", pageNo, err);
@@ -3195,7 +3353,8 @@ export const getDefaultSignature = async (objectId) => {
             id: result?.id,
             defaultSignature: defaultSignature,
             defaultInitial: defaultInitial,
-            defaultStamp: defaultStamp
+            defaultStamp: defaultStamp,
+            signatureName: res?.SignatureName || ""
           }
         };
       }

@@ -12,6 +12,7 @@ import {
   setSaveSignCheckbox,
   setMyInitial,
   setDefaultSignImg,
+  setDefaultSignatureName,
   resetWidgetState,
   setPrefillImg,
   setTypedSignFont,
@@ -531,6 +532,11 @@ function PdfRequestFiles(
                 const sign = defaultSignRes?.res?.defaultSignature || "";
                 const initials = defaultSignRes?.res?.defaultInitial || "";
                 dispatch(setDefaultSignImg(sign));
+                dispatch(
+                  setDefaultSignatureName(
+                    defaultSignRes?.res?.signatureName || ""
+                  )
+                );
                 dispatch(setMyInitial(initials));
                 dispatch(setMyStamp(defaultSignRes?.res?.defaultStamp));
               } else {

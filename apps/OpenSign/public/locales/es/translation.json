@@ -266,6 +266,8 @@
   "submit": "Enviar",
   "reset": "Volver a empezar",
   "my-signature": "Mi firma",
+  "signature-full-name": "Nombre completo",
+  "signature-full-name-placeholder": "Nombre que aparece debajo de su firma",
   "signature": "Firma",
   "upload-image": " Subir imagen",
   "clear": "Limpiar",

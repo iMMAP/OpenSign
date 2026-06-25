@@ -266,6 +266,8 @@
   "submit": "Absenden",
   "reset": "Zurücksetzen",
   "my-signature": "Meine Unterschrift",
+  "signature-full-name": "Vollständiger Name",
+  "signature-full-name-placeholder": "Name unter Ihrer Unterschrift",
   "signature": "Unterschrift",
   "upload-image": "Bild hochladen",
   "clear": "Löschen",

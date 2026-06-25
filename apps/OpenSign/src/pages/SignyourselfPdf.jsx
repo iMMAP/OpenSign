@@ -61,6 +61,7 @@ import {
   setSaveSignCheckbox,
   setMyInitial,
   setDefaultSignImg,
+  setDefaultSignatureName,
   setIsShowModal,
   resetWidgetState,
   setTypedSignFont,
@@ -268,6 +269,9 @@ function SignYourSelf() {
           })
         );
         dispatch(setDefaultSignImg(defaultSignRes?.res?.defaultSignature));
+        dispatch(
+          setDefaultSignatureName(defaultSignRes?.res?.signatureName || "")
+        );
         dispatch(setMyInitial(defaultSignRes?.res?.defaultInitial));
         dispatch(setMyStamp(defaultSignRes?.res?.defaultStamp));
       } else {

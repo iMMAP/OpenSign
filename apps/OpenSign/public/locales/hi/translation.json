@@ -266,6 +266,8 @@
   "submit": "जमा करें",
   "reset": "रीसेट करें",
   "my-signature": "मेरा हस्ताक्षर",
+  "signature-full-name": "पूरा नाम",
+  "signature-full-name-placeholder": "आपके हस्ताक्षर के नीचे दिखाया गया नाम",
   "signature": "हस्ताक्षर",
   "upload-image": " छवि अपलोड करें",
   "clear": "स्पष्ट",

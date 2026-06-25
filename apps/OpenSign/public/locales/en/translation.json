@@ -271,6 +271,8 @@
   "submit": "Submit",
   "reset": "Reset",
   "my-signature": "My signature",
+  "signature-full-name": "Full name",
+  "signature-full-name-placeholder": "Name shown below your signature",
   "signature": "Signature",
   "upload-image": " Upload image",
   "clear": "Clear",

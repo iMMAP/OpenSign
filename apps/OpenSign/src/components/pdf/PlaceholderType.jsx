@@ -13,7 +13,8 @@ import {
   selectCheckbox,
   isBase64,
   drawWidget,
-  changeDateToMomentFormat
+  changeDateToMomentFormat,
+  formatSignerTimestamp
 } from "../../constant/Utils";
 import "react-datepicker/dist/react-datepicker.css";
 import "../../styles/signature.css";
@@ -27,6 +28,38 @@ const textWidgetCls =
   "w-full h-full md:min-w-full md:min-h-full z-[999] text-[12px] overflow-hidden resize-none outline-none text-base-content item-center whitespace-pre-wrap";
 const widgetCls =
   "select-none-cls overflow-hidden w-full h-full text-black flex flex-col justify-center items-center";
+
+function SignedImageWithMetadata({ pos, alt, imgClassName = "" }) {
+  return (
+    <div className="flex flex-col w-full h-full select-none-cls overflow-hidden">
+      <img
+        alt={alt}
+        draggable="false"
+        src={pos.SignUrl}
+        className={`flex-1 min-h-0 object-contain ${imgClassName}`}
+      />
+      {pos.signerFullName && (
+        <div className="shrink-0 text-center leading-tight px-0.5">
+          <div
+            className="font-medium truncate text-base-content"
+            style={{ fontSize: "10px" }}
+          >
+            {pos.signerFullName}
+          </div>
+          {pos.signedAt && (
+            <div
+              className="truncate text-base-content/70"
+              style={{ fontSize: "9px" }}
+            >
+              {formatSignerTimestamp(pos.signedAt)}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PlaceholderType(props) {
   const selectWidgetCls = `w-full h-full absolute left-0 top-0 focus:outline-none text-base-content`;
   const { t } = useTranslation();
@@ -178,11 +211,12 @@ function PlaceholderType(props) {
   switch (type) {
     case "signature":
       return props.pos.SignUrl ? (
-        <img
+        <SignedImageWithMetadata
+          pos={props.pos}
           alt="signature"
-          draggable="false"
-          src={props.pos.SignUrl}
-          className={`${props.pos.signatureType !== "type" ? "object-contain" : ""} w-full h-full select-none-cls`}
+          imgClassName={
+            props.pos.signatureType !== "type" ? "object-contain" : ""
+          }
         />
       ) : (
         <div className={widgetCls}>
@@ -202,12 +236,7 @@ function PlaceholderType(props) {
       );
     case "stamp":
       return props.pos.SignUrl ? (
-        <img
-          alt="stamp"
-          draggable="false"
-          src={props.pos.SignUrl}
-          className="w-full h-full select-none-cls object-contain"
-        />
+        <SignedImageWithMetadata pos={props.pos} alt="stamp" />
       ) : (
         <div className={widgetCls}>
           {props.pos.type && (
@@ -329,11 +358,12 @@ function PlaceholderType(props) {
       );
     case "initials":
       return props.pos.SignUrl ? (
-        <img
+        <SignedImageWithMetadata
+          pos={props.pos}
           alt="initials"
-          draggable="false"
-          src={props.pos.SignUrl}
-          className={`${props.pos.signatureType !== "type" ? "object-contain" : ""} w-full h-full select-none-cls`}
+          imgClassName={
+            props.pos.signatureType !== "type" ? "object-contain" : ""
+          }
         />
       ) : (
         <div className={widgetCls}>

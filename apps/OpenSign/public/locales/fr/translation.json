@@ -266,6 +266,8 @@
   "submit": "Soumettre",
   "reset": "Réinitialiser",
   "my-signature": "Ma signature",
+  "signature-full-name": "Nom complet",
+  "signature-full-name-placeholder": "Nom affiché sous votre signature",
   "signature": "Signature",
   "upload-image": "Télécharger une image",
   "clear": "Vider",

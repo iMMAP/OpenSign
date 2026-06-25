@@ -266,6 +266,8 @@
   "submit": "제출",
   "reset": "재설정",
   "my-signature": "내 서명",
+  "signature-full-name": "전체 이름",
+  "signature-full-name-placeholder": "서명 아래에 표시되는 이름",
   "signature": "서명",
   "upload-image": " 이미지 업로드",
   "clear": "지우기",

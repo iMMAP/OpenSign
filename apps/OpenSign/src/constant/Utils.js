@@ -1505,14 +1505,17 @@ export const formatSignerTimestamp = (isoString) => {
       timeZone = parsed?.TimeZone;
       is12Hour = parsed?.Is12HourTimeFormat;
     }
-    return formatDateTime(
+    const formatted = formatDateTime(
       new Date(isoString),
       dateFormat,
       timeZone || "UTC",
       is12Hour
     );
+    return i18n.t("signed-on", { SignedOn: formatted });
   } catch {
-    return new Date(isoString).toLocaleString();
+    return i18n.t("signed-on", {
+      SignedOn: new Date(isoString).toLocaleString()
+    });
   }
 };
 

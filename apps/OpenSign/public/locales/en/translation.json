@@ -1183,7 +1183,7 @@
   "import": "Import",
   "search": "Search",
   "viewed-on": "Viewed on: {{ViewedOn}}",
-  "signed-on": "Signed on: {{SignedOn}}",
+  "signed-on": "eSigned on: {{SignedOn}}",
   "hide": "Hide",
   "show-more": "Show More",
   "browse-or-drag-to-replace-existing-file": "Browse or drag & drop a new file to replace the existing one",

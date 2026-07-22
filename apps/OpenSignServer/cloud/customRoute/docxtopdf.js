@@ -176,9 +176,15 @@ export default async function docxtopdf(req, res) {
         await killStuckProcesses();
         // Common failure when LibreOffice isn't installed/available.
         if (
-          String(error?.message || '').toLowerCase().includes('soffice') ||
-          String(error?.message || '').toLowerCase().includes('spawn') ||
-          String(error?.message || '').toLowerCase().includes('enoent')
+          String(error?.message || '')
+            .toLowerCase()
+            .includes('soffice') ||
+          String(error?.message || '')
+            .toLowerCase()
+            .includes('spawn') ||
+          String(error?.message || '')
+            .toLowerCase()
+            .includes('enoent')
         ) {
           throw new Error(
             'DOCX conversion failed because LibreOffice is not available on the server.'
@@ -221,14 +227,13 @@ export default async function docxtopdf(req, res) {
     const message =
       msg && String(msg).includes('LibreOffice')
         ? 'DOCX conversion is not available on the server. Please install LibreOffice (soffice) or upload a PDF.'
-        : 'We are currently experiencing some issues with processing DOCX files. Please upload the PDF version or contact us on support@opensignlabs.com';
+        : 'We are currently experiencing some issues with processing DOCX files. Please upload the PDF version or contact us on it@immap.org';
 
     if (msg.includes('timed out')) {
       msg =
-        'Document conversion is taking too long. Please try a smaller file or contact support@opensignlabs.com';
+        'Document conversion is taking too long. Please try a smaller file or contact it@immap.org';
     } else if (msg.includes('too large') || msg.includes('size')) {
-      msg =
-        'File is too large to process. Please reduce the file size or contact support@opensignlabs.com';
+      msg = 'File is too large to process. Please reduce the file size or contact it@immap.org';
     } else {
       msg = message;
     }

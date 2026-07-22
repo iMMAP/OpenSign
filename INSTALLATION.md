@@ -25,5 +25,5 @@ Should you need further assistance or have any questions, please feel free to re
 - **Discord:** [Join our Discord Community](https://discord.com/invite/opensign)
 - **YouTube:** [OpenSignHQ on YouTube](https://www.youtube.com/@opensignhq)
 
-We are committed to providing you with the support you need to successfully install and use iMMAP Sign. Visit our website at [www.opensignlabs.com](https://www.opensignlabs.com) for more information about our project and its features.
+We are committed to providing you with the support you need to successfully install and use iMMAP Sign. Visit our website at [it.support.immap.org](https://it.support.immap.org) for more information about our project and its features.
 

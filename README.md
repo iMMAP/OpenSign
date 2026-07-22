@@ -1,7 +1,7 @@
-<h1 align="center"><a href='https://www.opensignlabs.com'><img src=https://github.com/OpenSignLabs/OpenSign/assets/5486116/e518cc9c-5de3-47da-950b-f93336b9f14e></a>
+<h1 align="center"><a href='https://it.support.immap.org'><img src=https://github.com/OpenSignLabs/OpenSign/assets/5486116/e518cc9c-5de3-47da-950b-f93336b9f14e></a>
 </h1><div align="center">
 
-[The free and open source alternative to DocuSign](https://www.opensignlabs.com)
+[The free and open source alternative to DocuSign](https://it.support.immap.org)
 
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/opensignlabs/opensign.svg)](http://isitmaintained.com/project/opensignlabs/opensign "Average time to resolve an issue")
 [![All Contributors](https://img.shields.io/github/all-contributors/opensignlabs/opensign?color=ee8449&style=flat-square)](#contributors)
@@ -9,13 +9,13 @@
 ![GitHub last commit (by committer)](https://img.shields.io/github/last-commit/opensignlabs/opensign)
 
 
-<a href="https://www.opensignlabs.com/">Website</a>
+<a href="https://it.support.immap.org/">Website</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://docs.opensignlabs.com">Help Docs</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
     <a href="https://docs.opensignlabs.com/docs/API-docs/opensign-api-v-1">API Docs</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-  <a href="https://www.opensignlabs.com/blog">Blog</a>
+  <a href="https://it.support.immap.org/blog">Blog</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://discord.com/invite/xe9TDuyAyj">Discord</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
@@ -50,7 +50,7 @@ Welcome to OpenSign, the premier open source docusign alternative - document e-s
 
 ### Features
 
-- **Secure PDF E-Signing:** With the help of robust encryption algorithms, iMMAP Sign ensures maximum security, privacy & compatibility. Now sign unlimited documents even on the [cloud hosted free version of OpenSign](https://www.opensignlabs.com/).
+- **Secure PDF E-Signing:** With the help of robust encryption algorithms, iMMAP Sign ensures maximum security, privacy & compatibility. Now sign unlimited documents even on the [cloud hosted free version of OpenSign](https://it.support.immap.org/).
 - **Annotate Documents:** iMMAP Sign allows you to annotate PDF documents with an advanced signing pad that allows hand drawn signatures, uploaded images, typed signatures & saved signatures for the simplest open source document signing experience ever.
 - **User-Friendly Interface:** iMMAP Sign was built while keeping Intuitive design in mind for ease of use. Features like "Sign yourself", "Templates", "One click signatures" and "iMMAP Sign Drive" makes it stand out of the crowd and even makes it better than a lot of so-called industry leaders. OpenSign intends to provide the best document signing experience in the open source ecosystem.
 - **Multi-signer Support:** OpenSign's ability to invite multiple signers for signing along with the ability to invite by sharing signing links & being able to enforce signing in a sequence makes it the only open source solution that is fully loaded and allows it to compete head-to-head with established players in e-signature space.
@@ -121,7 +121,7 @@ OpenSign is licensed under the AGPL-3 License. For more details, see the [LICENS
 
 ### Acknowledgments
 
-We would like to thank all our contributors and users for their support and feedback. Special thanks to [OpenSignLabs](https://www.opensignlabs.com) for spearheading this initiative.
+We would like to thank all our contributors and users for their support and feedback. Special thanks to [OpenSignLabs](https://it.support.immap.org) for spearheading this initiative.
 
 ---
 

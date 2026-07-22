@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "OpenSign API v1",
-    "description": "This is API documentation for OpenSign API v1 based on the OpenAPI 3.1 specification. \n\nSome useful links:\n- [Official Website](https://www.opensignlabs.com)\n- [Github repo](https://github.com/opensignlabs/opensign)",
-    "termsOfService": "http://www.opensignlabs.com/terms/",
+    "description": "This is API documentation for OpenSign API v1 based on the OpenAPI 3.1 specification. \n\nSome useful links:\n- [Official Website](https://it.support.immap.org)\n- [Github repo](https://github.com/opensignlabs/opensign)",
+    "termsOfService": "http://it.support.immap.org/terms/",
     "contact": {
       "email": "contact@opensignlabs.com"
     },
@@ -28,7 +28,7 @@
       "description": "OpenSource DocuSign alternative",
       "externalDocs": {
         "description": "Find out more",
-        "url": "http://www.opensignlabs.com"
+        "url": "http://it.support.immap.org"
       }
     },
     {

@@ -71,6 +71,12 @@ import {
   saveWebhook,
   getWebhook,
 } from './parsefunction/apiIntegration.js';
+import {
+  sharePointStatus,
+  sharePointListSites,
+  sharePointListItems,
+  sharePointGetFile,
+} from './parsefunction/sharePoint.js';
 
 // This afterSave function triggers after an object is added or updated in the specified class, allowing for post-processing logic.
 Parse.Cloud.afterSave('contracts_Document', DocumentAftersave);
@@ -150,3 +156,7 @@ Parse.Cloud.define('getApiToken', getApiToken);
 Parse.Cloud.define('revokeApiToken', revokeApiToken);
 Parse.Cloud.define('saveWebhook', saveWebhook);
 Parse.Cloud.define('getWebhook', getWebhook);
+Parse.Cloud.define('sharePointStatus', sharePointStatus);
+Parse.Cloud.define('sharePointListSites', sharePointListSites);
+Parse.Cloud.define('sharePointListItems', sharePointListItems);
+Parse.Cloud.define('sharePointGetFile', sharePointGetFile);

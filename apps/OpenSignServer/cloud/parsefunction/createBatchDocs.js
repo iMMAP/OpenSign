@@ -286,6 +286,7 @@ async function startBulkSendInBackground(userId, Documents, Ip, parseConfig, typ
             }
           : {}),
         ...(x?.PenColors?.length > 0 ? { PenColors: x?.PenColors } : {}),
+        ...(x?.SharePointSource ? { SharePointSource: x.SharePointSource } : {}),
       },
     };
   });

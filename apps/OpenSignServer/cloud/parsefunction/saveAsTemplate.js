@@ -119,6 +119,9 @@ export default async function saveAsTemplate(request) {
       if (_docRes?.PenColors?.length > 0) {
         templateCls.set('PenColors', _docRes?.PenColors);
       }
+      if (_docRes?.SharePointSource) {
+        templateCls.set('SharePointSource', _docRes.SharePointSource);
+      }
       const res = await templateCls.save(null, { useMasterKey: true });
       return res;
     } else {

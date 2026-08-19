@@ -4,6 +4,7 @@ import { formJson } from "../json/FormJson";
 import Parse from "parse";
 import Alert from "../primitives/Alert";
 import SelectFolder from "../components/shared/fields/SelectFolder";
+import SharePointSourcePicker from "../components/shared/fields/SharePointSourcePicker";
 import SignersInput from "../components/shared/fields/SignersInput";
 import PageNotFound from "./PageNotFound";
 import { SaveFileSize } from "../constant/saveFileSize";
@@ -74,6 +75,8 @@ const Forms = (props) => {
     AllowModifications: false,
   });
   const [fileupload, setFileUpload] = useState("");
+  const [fileSource, setFileSource] = useState("upload");
+  const [sharePointSource, setSharePointSource] = useState(null);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [fileload, setfileload] = useState(false);
   const [percentage, setpercentage] = useState(0);
@@ -133,10 +136,9 @@ const Forms = (props) => {
       e.target.value = "";
     }
   };
-  const handleFileInput = withSessionValidation(async (e) => {
+  const processFiles = withSessionValidation(async (files, e) => {
     setpercentage(0);
     try {
-      const files = Array.from(e.target.files);
       const filesNameArr = files.map((f) => f.name);
       setSelectedFiles(filesNameArr);
       if (!files.length) {
@@ -355,6 +357,42 @@ const Forms = (props) => {
       removeFile(e);
     }
   });
+  const handleFileInput = (e) =>
+    processFiles(Array.from(e.target.files || []), e);
+  const handleSharePointFile = async (spFile) => {
+    const name = spFile.name || spFile.originalFileName || "document.pdf";
+    const lower = name.toLowerCase();
+    let mime = spFile.mimeType || "application/octet-stream";
+    if (lower.endsWith(".pdf")) mime = "application/pdf";
+    else if (lower.endsWith(".docx")) {
+      mime =
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    } else if (lower.endsWith(".png")) mime = "image/png";
+    else if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) {
+      mime = "image/jpeg";
+    }
+    const file = base64ToFile(`data:${mime};base64,${spFile.base64}`, name);
+    setSharePointSource({
+      siteId: spFile.siteId || "",
+      siteName: spFile.siteName || "",
+      driveId: spFile.driveId,
+      driveName: spFile.driveName || "",
+      itemId: spFile.itemId,
+      parentId: spFile.parentId || "root",
+      originalFileName: spFile.originalFileName || name,
+      webUrl: spFile.webUrl || ""
+    });
+    await processFiles([file]);
+  };
+  const handleFileSourceChange = (nextSource) => {
+    setFileSource(nextSource);
+    setFileUpload("");
+    setSelectedFiles([]);
+    setSharePointSource(null);
+    if (inputFileRef.current) {
+      inputFileRef.current.value = "";
+    }
+  };
   // `isValidURL` is used to check valid webhook url
   function isValidURL(value) {
     try {
@@ -436,6 +474,9 @@ const Forms = (props) => {
           }
         }
         object.set("URL", fileupload);
+        if (sharePointSource?.driveId && sharePointSource?.parentId) {
+          object.set("SharePointSource", sharePointSource);
+        }
         object.set("CreatedBy", Parse.User.createWithoutData(currentUser.id));
         if (folder && folder.ObjectId) {
           object.set("Folder", {
@@ -587,6 +628,8 @@ const Forms = (props) => {
     removeFile();
     setFileUpload("");
     setSelectedFiles([]);
+    setFileSource("upload");
+    setSharePointSource(null);
     setTimeout(() => setIsReset(false), 50);
   };
   const handleCancel = () => {
@@ -782,6 +825,13 @@ const Forms = (props) => {
                 </span>
               </div>
             )}
+            <SharePointSourcePicker
+              fileSource={fileSource}
+              onFileSourceChange={handleFileSourceChange}
+              sharePointSource={sharePointSource}
+              onSharePointFile={handleSharePointFile}
+              disabled={fileload || isDecrypting}
+            />
             <div className="text-xs">
               <label className="block">
                 {`${`${t("report-heading.File")} (${t("file-type")}`}${", docx)"}`}
@@ -797,6 +847,7 @@ const Forms = (props) => {
                       onClick={() => {
                         setFileUpload("");
                         setSelectedFiles([]);
+                        setSharePointSource(null);
                       }}
                       className="cursor-pointer ml-[10px] text-[20px] font-bold"
                     >
@@ -804,6 +855,10 @@ const Forms = (props) => {
                     </div>
                   </div>
                 </div>
+              ) : fileSource === "sharepoint" ? (
+                <p className="text-gray-500 mt-1">
+                  {t("sharepoint-select-file")}
+                </p>
               ) : (
                 <div className="flex gap-1 justify-center items-center">
                   <input
@@ -817,7 +872,7 @@ const Forms = (props) => {
                       e.target.setCustomValidity(t("input-required"))
                     }
                     onInput={(e) => e.target.setCustomValidity("")}
-                    required
+                    required={fileSource === "upload"}
                   />
                 </div>
               )}

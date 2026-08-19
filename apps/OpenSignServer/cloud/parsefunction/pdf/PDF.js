@@ -18,6 +18,7 @@ import { P12Signer } from '@signpdf/signer-p12';
 import { buildDownloadFilename, parseUploadFile } from '../../../utils/fileUtils.js';
 import sendMailWithAttachment from '../sendMailWithAttachment.js';
 import { sendWebhookEvent } from '../../helpers/apiIntegration.js';
+import { saveSignedPdfToSharePoint } from '../../helpers/sharePointGraph.js';
 
 const serverUrl = cloudServerUrl; // process.env.SERVER_URL;
 const APPID = serverAppId;
@@ -540,6 +541,23 @@ async function PDF(req) {
             doc.DocumentHash = hashForDoc;
           }
           sendMailsaveCertifcate(doc, pfx, isCustomMail, mailProvider, `signed_${name}`);
+          if (_resDoc?.SharePointSource?.driveId && _resDoc?.SharePointSource?.parentId) {
+            try {
+              const signedBuffer = fs.readFileSync(signedFilePath);
+              await saveSignedPdfToSharePoint(_resDoc, signedBuffer, req.params.docId);
+            } catch (spErr) {
+              console.log('SharePoint save-back failed:', spErr?.message || spErr);
+              try {
+                await axios.put(
+                  `${docUrl}/${req.params.docId}`,
+                  { SharePointSaveError: spErr?.message || 'SharePoint save failed' },
+                  { headers }
+                );
+              } catch (saveErr) {
+                console.log('err saving SharePointSaveError', saveErr?.message || saveErr);
+              }
+            }
+          }
         } else {
           unlinkFile(pfxname);
         }

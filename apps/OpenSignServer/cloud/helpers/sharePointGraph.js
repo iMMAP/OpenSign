@@ -93,8 +93,16 @@ function mapDriveItem(item, driveId) {
   };
 }
 
+function matchesQuery(name, query) {
+  if (!query) return true;
+  return String(name || '')
+    .toLowerCase()
+    .includes(String(query).toLowerCase());
+}
+
 export async function listSites(token, search = '') {
-  const query = encodeURIComponent(search?.trim() || '*');
+  const trimmed = search?.trim() || '';
+  const query = encodeURIComponent(trimmed || '*');
   const sites = new Map();
 
   const addSites = values => {
@@ -113,7 +121,11 @@ export async function listSites(token, search = '') {
 
   try {
     const followed = await graphJson(token, '/me/followedSites?$top=50');
-    addSites(followed.value);
+    if (trimmed) {
+      addSites((followed.value || []).filter(site => matchesQuery(site.displayName || site.name, trimmed)));
+    } else {
+      addSites(followed.value);
+    }
   } catch (err) {
     console.log('SharePoint followed sites failed:', err?.message || err);
   }
@@ -121,7 +133,9 @@ export async function listSites(token, search = '') {
   try {
     const root = await graphJson(token, '/sites/root?$select=id,name,displayName,webUrl');
     const mapped = mapSite(root);
-    if (mapped) sites.set(mapped.id, mapped);
+    if (mapped && (!trimmed || matchesQuery(mapped.name, trimmed))) {
+      sites.set(mapped.id, mapped);
+    }
   } catch (err) {
     console.log('SharePoint root site failed:', err?.message || err);
   }
@@ -151,6 +165,135 @@ export async function listChildren(token, driveId, itemId) {
   folders.sort((a, b) => a.name.localeCompare(b.name));
   files.sort((a, b) => a.name.localeCompare(b.name));
   return [...folders, ...files];
+}
+
+function mapSearchHits(hits) {
+  const items = [];
+  (hits || []).forEach(hit => {
+    const resource = hit?.resource;
+    if (!resource) return;
+    const odataType = String(resource['@odata.type'] || '');
+    if (odataType.includes('site')) {
+      const mapped = mapSite(resource);
+      if (mapped) items.push(mapped);
+      return;
+    }
+    const driveId = resource.parentReference?.driveId || resource.id;
+    const mapped = mapDriveItem(resource, driveId);
+    if (mapped) {
+      if (resource.parentReference?.siteId) {
+        mapped.siteId = resource.parentReference.siteId;
+      }
+      items.push(mapped);
+    }
+  });
+  return items;
+}
+
+export async function searchDriveItems(token, { driveId, itemId, query }) {
+  const q = String(query || '').trim();
+  if (!q || !driveId) return [];
+  const encoded = encodeURIComponent(q).replace(/'/g, "''");
+  const base =
+    itemId && itemId !== 'root'
+      ? `/drives/${encodeURIComponent(driveId)}/items/${encodeURIComponent(itemId)}/search(q='${encoded}')`
+      : `/drives/${encodeURIComponent(driveId)}/root/search(q='${encoded}')`;
+  try {
+    const json = await graphJson(
+      token,
+      `${base}?$select=id,name,folder,file,size,webUrl,parentReference&$top=50`,
+    );
+    const folders = [];
+    const files = [];
+    (json.value || []).forEach(item => {
+      const mapped = mapDriveItem(item, driveId);
+      if (!mapped) return;
+      if (mapped.kind === 'folder') folders.push(mapped);
+      else files.push(mapped);
+    });
+    return [...folders, ...files];
+  } catch (err) {
+    console.log('SharePoint drive search failed:', err?.message || err);
+    return [];
+  }
+}
+
+async function searchMicrosoftGraph(token, query) {
+  const q = String(query || '').trim();
+  if (!q) return [];
+  try {
+    const res = await fetch(`${GRAPH_BASE}/search/query`, {
+      method: 'POST',
+      headers: {
+        ...graphHeaders(token),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        requests: [
+          {
+            entityTypes: ['site'],
+            query: { queryString: q },
+            from: 0,
+            size: 20,
+          },
+          {
+            entityTypes: ['driveItem'],
+            query: {
+              queryString: `${q} (filetype:pdf OR filetype:docx OR filetype:png OR filetype:jpg OR filetype:jpeg OR isDocument:false)`,
+            },
+            from: 0,
+            size: 25,
+          },
+        ],
+      }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(json?.error?.message || res.statusText);
+    }
+    const hits = (json.value || []).flatMap(container =>
+      (container.hitsContainers || []).flatMap(group => group.hits || []),
+    );
+    return mapSearchHits(hits);
+  } catch (err) {
+    console.log('SharePoint Microsoft Search failed:', err?.message || err);
+    return [];
+  }
+}
+
+export async function searchSharePoint(token, { query, siteId, driveId, itemId }) {
+  const q = String(query || '').trim();
+  if (!q) return [];
+
+  if (driveId) {
+    return searchDriveItems(token, { driveId, itemId, query: q });
+  }
+
+  if (siteId) {
+    const drives = await listDrives(token, siteId);
+    const matchingDrives = drives.filter(drive => matchesQuery(drive.name, q));
+    const nested = [];
+    for (const drive of drives) {
+      const found = await searchDriveItems(token, { driveId: drive.id, query: q });
+      nested.push(...found.map(item => ({ ...item, siteId })));
+    }
+    const seen = new Set();
+    return [...matchingDrives, ...nested].filter(item => {
+      const key = `${item.kind}-${item.id}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  const [sites, graphHits] = await Promise.all([listSites(token, q), searchMicrosoftGraph(token, q)]);
+  const seen = new Set();
+  return [...sites, ...graphHits].filter(item => {
+    const key = `${item.kind}-${item.id}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 export async function downloadFile(token, driveId, itemId) {

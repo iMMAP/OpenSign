@@ -76,6 +76,7 @@ import {
   sharePointListSites,
   sharePointListItems,
   sharePointGetFile,
+  sharePointSearch,
 } from './parsefunction/sharePoint.js';
 
 // This afterSave function triggers after an object is added or updated in the specified class, allowing for post-processing logic.
@@ -160,3 +161,4 @@ Parse.Cloud.define('sharePointStatus', sharePointStatus);
 Parse.Cloud.define('sharePointListSites', sharePointListSites);
 Parse.Cloud.define('sharePointListItems', sharePointListItems);
 Parse.Cloud.define('sharePointGetFile', sharePointGetFile);
+Parse.Cloud.define('sharePointSearch', sharePointSearch);

@@ -4,7 +4,13 @@ import {
   getValidAccessToken,
   sharePointConnectionStatus,
 } from '../helpers/microsoftGraphTokens.js';
-import { downloadFile, listChildren, listDrives, listSites } from '../helpers/sharePointGraph.js';
+import {
+  downloadFile,
+  listChildren,
+  listDrives,
+  listSites,
+  searchSharePoint,
+} from '../helpers/sharePointGraph.js';
 
 async function requireAuthenticatedUser(request) {
   if (!request.user) {
@@ -68,6 +74,17 @@ export async function sharePointListItems(request) {
     throw new Parse.Error(Parse.Error.INVALID_QUERY, 'siteId or driveId is required.');
   }
   return { items: await listChildren(token, driveId, itemId) };
+}
+
+export async function sharePointSearch(request) {
+  const { token } = await requireSharePointToken(request);
+  const { query, siteId, driveId, itemId } = request.params || {};
+  if (!String(query || '').trim()) {
+    return { items: [] };
+  }
+  return {
+    items: await searchSharePoint(token, { query, siteId, driveId, itemId }),
+  };
 }
 
 export async function sharePointGetFile(request) {

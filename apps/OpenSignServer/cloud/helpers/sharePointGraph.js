@@ -100,71 +100,177 @@ function matchesQuery(name, query) {
     .includes(String(query).toLowerCase());
 }
 
+async function microsoftSearchSites(token, query) {
+  const q = String(query || '').trim();
+  const queryString = q || 'contentclass:STS_Site OR contentclass:STS_Web';
+  try {
+    const res = await fetch(`${GRAPH_BASE}/search/query`, {
+      method: 'POST',
+      headers: {
+        ...graphHeaders(token),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        requests: [
+          {
+            entityTypes: ['site'],
+            query: { queryString },
+            from: 0,
+            size: 50,
+          },
+        ],
+      }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(json?.error?.message || res.statusText);
+    }
+    const hits = (json.value || []).flatMap(container =>
+      (container.hitsContainers || []).flatMap(group => group.hits || []),
+    );
+    return mapSearchHits(hits).filter(item => item.kind === 'site');
+  } catch (err) {
+    console.log('SharePoint user site search failed:', err?.message || err);
+    return [];
+  }
+}
+
+async function sitesFromRecentFiles(token) {
+  const sites = new Map();
+  try {
+    const json = await graphJson(
+      token,
+      '/me/drive/recent?$top=40&$select=id,name,webUrl,parentReference',
+    );
+    const siteIds = [
+      ...new Set(
+        (json.value || [])
+          .map(item => item.parentReference?.sharepointIds?.siteId || item.parentReference?.siteId)
+          .filter(Boolean),
+      ),
+    ].slice(0, 20);
+    await Promise.all(
+      siteIds.map(async siteId => {
+        try {
+          const site = await graphJson(
+            token,
+            `/sites/${encodeURIComponent(siteId)}?$select=id,name,displayName,webUrl`,
+          );
+          const mapped = mapSite(site);
+          if (mapped) sites.set(mapped.id, mapped);
+        } catch (err) {
+          if (err.status !== 403 && err.status !== 404) {
+            console.log('SharePoint recent site lookup failed:', err?.message || err);
+          }
+        }
+      }),
+    );
+  } catch (err) {
+    console.log('SharePoint recent files failed:', err?.message || err);
+  }
+  return [...sites.values()];
+}
+
+async function sitesFromMembership(token) {
+  const sites = [];
+  try {
+    const json = await graphJson(
+      token,
+      '/me/memberOf/microsoft.graph.group?$select=id,displayName,groupTypes&$top=50',
+    );
+    const groups = (json.value || []).filter(group =>
+      (group.groupTypes || []).includes('Unified'),
+    );
+    await Promise.all(
+      groups.slice(0, 30).map(async group => {
+        try {
+          const site = await graphJson(
+            token,
+            `/groups/${encodeURIComponent(group.id)}/sites/root?$select=id,name,displayName,webUrl`,
+          );
+          const mapped = mapSite(site);
+          if (mapped) sites.push(mapped);
+        } catch (err) {
+          if (err.status !== 403 && err.status !== 404) {
+            console.log('SharePoint group site lookup failed:', err?.message || err);
+          }
+        }
+      }),
+    );
+  } catch (err) {
+    if (err.status !== 403 && err.status !== 401) {
+      console.log('SharePoint group membership failed:', err?.message || err);
+    }
+  }
+  return sites;
+}
+
 export async function listSites(token, search = '') {
   const trimmed = search?.trim() || '';
-  const query = encodeURIComponent(trimmed || '*');
   const sites = new Map();
 
   const addSites = values => {
     (values || []).forEach(site => {
-      const mapped = mapSite(site);
-      if (mapped) sites.set(mapped.id, mapped);
+      const mapped = site?.kind === 'site' ? site : mapSite(site);
+      if (!mapped) return;
+      if (trimmed && !matchesQuery(mapped.name, trimmed)) return;
+      sites.set(mapped.id, mapped);
     });
   };
 
   try {
-    const searched = await graphJson(token, `/sites?search=${query}&$top=50`);
-    addSites(searched.value);
-  } catch (err) {
-    console.log('SharePoint list sites search failed:', err?.message || err);
-  }
-
-  try {
-    const followed = await graphJson(token, '/me/followedSites?$top=50');
-    if (trimmed) {
-      addSites((followed.value || []).filter(site => matchesQuery(site.displayName || site.name, trimmed)));
-    } else {
-      addSites(followed.value);
-    }
+    const followed = await graphJson(token, '/me/followedSites?$top=50&$select=id,name,displayName,webUrl');
+    addSites(followed.value);
   } catch (err) {
     console.log('SharePoint followed sites failed:', err?.message || err);
   }
 
-  try {
-    const root = await graphJson(token, '/sites/root?$select=id,name,displayName,webUrl');
-    const mapped = mapSite(root);
-    if (mapped && (!trimmed || matchesQuery(mapped.name, trimmed))) {
-      sites.set(mapped.id, mapped);
-    }
-  } catch (err) {
-    console.log('SharePoint root site failed:', err?.message || err);
-  }
+  addSites(await sitesFromMembership(token));
+  addSites(await sitesFromRecentFiles(token));
+  addSites(await microsoftSearchSites(token, trimmed));
 
   return [...sites.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export async function listDrives(token, siteId) {
-  const json = await graphJson(token, `/sites/${encodeURIComponent(siteId)}/drives?$select=id,name,webUrl,driveType`);
-  return (json.value || []).map(drive => mapDrive(drive, siteId)).filter(Boolean);
+  try {
+    const json = await graphJson(
+      token,
+      `/sites/${encodeURIComponent(siteId)}/drives?$select=id,name,webUrl,driveType`,
+    );
+    return (json.value || []).map(drive => mapDrive(drive, siteId)).filter(Boolean);
+  } catch (err) {
+    if (err.status === 403 || err.status === 404) {
+      return [];
+    }
+    throw err;
+  }
 }
 
 export async function listChildren(token, driveId, itemId) {
   const itemPath = itemId && itemId !== 'root' ? encodeURIComponent(itemId) : 'root';
-  const json = await graphJson(
-    token,
-    `/drives/${encodeURIComponent(driveId)}/items/${itemPath}/children?$select=id,name,folder,file,size,webUrl,parentReference&$top=200`,
-  );
-  const folders = [];
-  const files = [];
-  (json.value || []).forEach(item => {
-    const mapped = mapDriveItem(item, driveId);
-    if (!mapped) return;
-    if (mapped.kind === 'folder') folders.push(mapped);
-    else files.push(mapped);
-  });
-  folders.sort((a, b) => a.name.localeCompare(b.name));
-  files.sort((a, b) => a.name.localeCompare(b.name));
-  return [...folders, ...files];
+  try {
+    const json = await graphJson(
+      token,
+      `/drives/${encodeURIComponent(driveId)}/items/${itemPath}/children?$select=id,name,folder,file,size,webUrl,parentReference&$top=200`,
+    );
+    const folders = [];
+    const files = [];
+    (json.value || []).forEach(item => {
+      const mapped = mapDriveItem(item, driveId);
+      if (!mapped) return;
+      if (mapped.kind === 'folder') folders.push(mapped);
+      else files.push(mapped);
+    });
+    folders.sort((a, b) => a.name.localeCompare(b.name));
+    files.sort((a, b) => a.name.localeCompare(b.name));
+    return [...folders, ...files];
+  } catch (err) {
+    if (err.status === 403 || err.status === 404) {
+      return [];
+    }
+    throw err;
+  }
 }
 
 function mapSearchHits(hits) {

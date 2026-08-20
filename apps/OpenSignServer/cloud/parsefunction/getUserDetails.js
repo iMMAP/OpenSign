@@ -17,6 +17,10 @@ async function getUserDetails(request) {
       userQuery.exclude('TenantId.FileAdapters');
       userQuery.exclude('google_refresh_token');
       userQuery.exclude('TenantId.PfxFile');
+      userQuery.exclude('MicrosoftAccessTokenEnc');
+      userQuery.exclude('MicrosoftRefreshTokenEnc');
+      userQuery.exclude('MicrosoftTokenExpiresAt');
+      userQuery.exclude('MicrosoftScopes');
       if (userId) {
         userQuery.equalTo('CreatedBy', { __type: 'Pointer', className: '_User', objectId: userId });
       }

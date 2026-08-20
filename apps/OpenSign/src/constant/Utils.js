@@ -944,6 +944,9 @@ export const createDocument = async (
       : {};
     const PenColors =
       Doc?.PenColors?.length > 0 ? { PenColors: Doc?.PenColors } : {};
+    const SharePointSource = Doc?.SharePointSource
+      ? { SharePointSource: Doc.SharePointSource }
+      : {};
     const TemplateId = Doc?.objectId
       ? {
           TemplateId: {
@@ -983,7 +986,8 @@ export const createDocument = async (
       ...Bcc,
       ...RedirectUrl,
       ...TemplateId,
-      ...PenColors
+      ...PenColors,
+      ...SharePointSource
     };
     const remindOnceInEvery = Doc?.RemindOnceInEvery;
     const TimeToCompleteDays = parseInt(Doc?.TimeToCompleteDays);
